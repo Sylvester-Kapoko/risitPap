@@ -47,6 +47,64 @@ func (r *Receipt) Change() decimal.Decimal {
     return r.Payment.Amount.Sub(r.Total())
 }
 
+type PaymentState string
+
+const (
+	PaymentPending  PaymentState = "PENDING"
+	PaymentPartial  PaymentState = "PARTIAL"
+	PaymentPaid     PaymentState = "PAID"
+	PaymentOverpaid PaymentState = "OVERPAID"
+)
+
+func (r *Receipt) PaymentState() PaymentState {
+	total := r.Total()
+	paid := r.Payment.Amount
+
+	// Invariant: total must never be negative
+	if total.IsNegative() {
+		// Defensive guard: domain should never allow this
+		return PaymentPending
+	}
+
+	switch {
+	case paid.IsZero():
+		return PaymentPending
+
+	case paid.GreaterThan(total):
+		return PaymentOverpaid
+
+	case paid.Equal(total):
+		return PaymentPaid
+
+	case paid.LessThan(total) && paid.GreaterThanZero():
+		return PaymentPartial
+
+	default:
+		// fallback safety (should never occur with decimal)
+		return PaymentPending
+	}
+}
+
+func (r *Receipt) IsPaid() bool {
+	state := r.PaymentState()
+	return state == PaymentPaid || state == PaymentOverpaid
+}
+
+func (r *Receipt) IsPending() bool {
+	return r.PaymentState() == PaymentPending
+}
+
+func (r *Receipt) IsPartiallyPaid() bool {
+	return r.PaymentState() == PaymentPartial
+}
+
+
+
+func (r *Receipt) IsPaid() bool {
+	state := r.PaymentState()
+	return state == PaymentPaid || state == PaymentOverpaid
+}
+
 func (r *Receipt) TaxRatePct() string{
      return r.TaxRate.Mul(decimal.NewFromInt(100)).StringFixed(2)
 }

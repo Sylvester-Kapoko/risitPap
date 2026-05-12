@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <style>
+        body { font-family: monospace; max-width: 320px; }
+    </style>
+</head>
+
+<body>
+
+<!-- 📌 LINE ~12: FULL RECEIPT CONTAINER -->
+<div id="receipt-container"
+     hx-get="/receipt/{{.ID}}/fragment"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+</div>
+
+</body>
+</html>

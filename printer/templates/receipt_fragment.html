@@ -1,0 +1,45 @@
+<div class="receipt">
+
+<h1>{{.StoreName}}</h1>
+<p>{{.StoreAddr}}</p>
+
+{{if .ShowPhone}}
+<p>Tel: {{.StorePhone}}</p>
+{{end}}
+
+{{if .ShowTaxID}}
+<p>KRA: {{.StoreTaxID}}</p>
+{{end}}
+
+<p>Transaction: {{.TransactionID}}</p>
+
+<hr>
+
+<table class="items">
+<tr>
+    <th>Item</th>
+    <th>Qty</th>
+    <th>Price</th>
+    <th>Total</th>
+</tr>
+
+{{range .Items}}
+<tr>
+    <td>{{.Name}}</td>
+    <td>{{.Qty}}</td>
+    <td>{{.UnitPrice}}</td>
+    <td>{{.LineTotal}}</td>
+</tr>
+{{end}}
+</table>
+
+<p>Subtotal: {{.Subtotal}}</p>
+
+<!-- 📌 LINE ~40: LIVE PAYMENT SECTION (HTMX POLLING HOOK) -->
+<div id="payment-status"
+     hx-get="/receipt/{{.ID}}/status"
+     hx-trigger="load, every 2s"
+     hx-swap="outerHTML">
+</div>
+
+</div>
