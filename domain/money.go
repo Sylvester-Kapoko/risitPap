@@ -11,11 +11,6 @@ type Money struct {
 	Amount decimal.Decimal
 }
 
-// Display formats the amount with exactly two decimal places.
-func (m Money) Display() string {
-	return fmt.Sprintf("Ksh%s", m.Amount.StringFixed(2))
-}
-
 
 func DisplayCurrency(amount decimal.Decimal, currency string) string {
     if currency == "" {
