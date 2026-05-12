@@ -1,0 +1,20 @@
+package main
+
+import (
+	"fmt"
+
+	_ "github.com/glebarez/go-sqlite"
+)
+
+type UserRepository struct {
+	// Imagine this struct holds a database client
+}
+
+func NewUserRepository() *UserRepository {
+	return &UserRepository{}
+}
+
+func (r *UserRepository) FindUser(id int) string {
+	// In a real app, this would query the database
+	return fmt.Sprintf("user-%d", id)
+}

@@ -1,0 +1,165 @@
+package server
+
+import (
+	"html/template"
+	"net/http"
+	"strconv"
+	"strings"
+	"fmt"
+	"time"
+	"crypto/rand"
+	"encoding/hex"
+	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/Receipts/internal/store"
+	"github.com/Sylvester-Kapoko/Receipts/printer"
+	"github.com/shopspring/decimal"
+)
+
+func HandleIndex(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc {
+	tmpl := template.Must(template.New("index").Parse(indexHTML))
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Trial expiry gate - let them view history but not print new receipts
+		if !store.ValidLicense() && store.TrialDaysLeft() <= 0 {
+			w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trial Expired</title>
+
+			<style>body{font-family:system-ui,sans-serif;max-width:500px;margin:auto;padding:20px;text-align:center;}
+			a{color:#007bff;}</style></head><body>
+			<h1>⏰ Trial Expired</h1>
+			<p>Your 30-day trial has ended.</p>
+			<p>Your receipts are still available.</p>
+			<p><a href="/history">📋 View Receipt History</a></p>
+			<p>Purchase a license key to resume printing new receipts.</p>
+			<p><a href="https://wa.me/254768592677" style="font-size:1.2em;font-weight:bold;">🛒 Buy Now (Ksh 2000)</a></p>
+			</body></html>`))
+			return
+		}
+		cfg, _ := st.LoadConfig()
+		if cfg == nil {
+			cfg = &domain.StoreConfig{}
+		}
+
+
+		// GET request — just show the form
+		tmpl.Execute(w, cfg)
+	}
+}
+
+func HandlePrint(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+		// Also block printing if trial expired
+		if !store.ValidLicense() && store.TrialDaysLeft() <= 0 {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		receipt := parseForm(r)
+		receipt.CreatedAt = time.Now()
+		receipt.TransactionID = generateTransactionID()
+		// populate store phone and tax from the saved configuration
+		if cfg, err := st.LoadConfig(); err == nil && cfg != nil {
+			receipt.StorePhone = cfg.StorePhone
+			receipt.StoreTaxID = cfg.StoreTaxID
+			receipt.Currency = cfg.Currency
+			receipt.HasVAT = cfg.VATRegistered
+			if !cfg.VATRegistered {
+				receipt.TaxRate = decimal.Zero
+			}
+		}
+		// Fallback currency
+		if receipt.Currency == "" {
+			receipt.Currency = "Ksh"
+		}
+		st.Save(receipt)
+
+		receiptHTML := formatter.Format(receipt)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt</title>
+<style>body{font-family:monospace;max-width:400px;margin:auto;padding:20px;}
+@media print{body{margin:0;padding:0;}}</style></head><body>`))
+		w.Write([]byte(receiptHTML))
+		w.Write([]byte(`<p><button onclick="window.print()">Print to paper</button> | <a href="/">New Receipt</a></p></body></html>`))
+	}
+}
+
+func HandleRegisterForm(st *store.Store) http.HandlerFunc {
+    tmpl := template.Must(template.New("register").Parse(registerHTML))
+    return func(w http.ResponseWriter, r *http.Request) {
+        cfg, _ := st.LoadConfig()
+        tmpl.Execute(w, cfg)
+    }
+}
+
+func HandleRegisterSave(st *store.Store) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        r.ParseForm()
+        vatRegistered := r.FormValue("vatRegistered") == "true"
+        cfg := &domain.StoreConfig{
+            StoreName:  r.FormValue("storeName"),
+            StoreAddr:  r.FormValue("storeAddr"),
+            StorePhone: r.FormValue("storePhone"),
+            StoreTaxID: r.FormValue("storeTaxID"),
+            VATRegistered: vatRegistered, // pre-computed
+            Currency: r.FormValue("currency"),
+            TemplateId: r.FormValue("templateId"),
+            LogoPath: r.FormValue("logoPath"),
+        }
+        if  err := st.SaveConfig(cfg); err != nil {
+	http.Error(w, "Failed to save settings", http.StatusInternalServerError)
+	return
+        }
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+    }
+}
+
+
+
+// Ticket 1 handles autogeneration of Transaction ID
+func generateTransactionID() string {
+	now:= time.Now()
+	b := make([]byte, 3)
+	rand.Read(b)
+	return fmt.Sprintf("INV-%s-%s", now.Format("20060102"), hex.EncodeToString(b))
+}
+
+func parseForm(r *http.Request) *domain.Receipt {
+	r.ParseForm()
+	taxRate, _ := decimal.NewFromString(r.FormValue("taxRate"))
+	payAmt, _ := decimal.NewFromString(r.FormValue("paymentAmount"))
+	itemsStr := r.FormValue("items")
+	var items []domain.ReceiptItem
+	for _, part := range strings.Split(itemsStr, ";") {
+		if part == "" {
+			continue
+		}
+		fields := strings.Split(part, ",")
+		if len(fields) < 3 {
+			continue
+		}
+		qty, _ := strconv.Atoi(strings.TrimSpace(fields[1]))
+		price, _ := decimal.NewFromString(strings.TrimSpace(fields[2]))
+		items = append(items, domain.ReceiptItem{
+			Name:      strings.TrimSpace(fields[0]),
+			Qty:       qty,
+			UnitPrice: price,
+		})
+	}
+
+	
+
+	return &domain.Receipt{
+		TransactionID: r.FormValue("transactionID"),
+		StoreName:     r.FormValue("storeName"),
+		StoreAddr:     r.FormValue("storeAddr"),
+		TaxRate:       taxRate,
+		Items:         items,
+		Payment: domain.Payment{
+			Method: r.FormValue("paymentMethod"),
+			Amount: payAmt,
+		},
+		CreatedAt: time.Now(),
+	}
+}

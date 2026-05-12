@@ -1,0 +1,46 @@
+package printer
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/Sylvester-Kapoko/Receipts/domain/money"
+)
+
+type PlainTextFormatter struct {
+	width int
+}
+
+func NewPlainTextFormatter(width int) *PlainTextFormatter {
+	if width < 20 {
+		width = 32
+	}
+	return &PlainTextFormatter{width: width}
+}
+
+func (f *PlainTextFormatter) Format(r *domain.Receipt) string {
+	var b strings.Builder
+
+	center(&b, r.StoreName, f.width)
+	center(&b, r.StoreAddr, f.width)
+	b.WriteString("\n")
+
+	for _, item := range r.Items {
+		itemLine(&b, item.Name, fmt.Sprintf("%d", item.Qty),
+			domain.DisplayCurrency(item.UnitPrice),domain.DisplayCurrency(item.LineTotal()), f.width)
+	}
+
+	separator(&b, f.width)
+	moneyLine(&b, "Subtotal", domain.DisplayCurrency(r.Subtotal()), f.width)
+	moneyLine(&b, fmt.Sprintf("Tax (%s%%)", r.TaxRatePct()), domain.DisplayCurrency(r.Tax()), f.width)
+	moneyLine(&b, "TOTAL",domain.DisplayCurrency(r.Total()), f.width)
+	b.WriteString("\n")
+	moneyLine(&b, r.Payment.Method, domain.DisplayCurrency(r.Payment.Amount), f.width)
+	moneyLine(&b, "Change", domain.DisplayCurrency(r.Change()), f.width)
+
+	b.WriteString("\n")
+	center(&b, "Thank you!", f.width)
+	center(&b, r.CreatedAt.Format("2006-01-02 15:04"), f.width)
+
+	return b.String()
+}

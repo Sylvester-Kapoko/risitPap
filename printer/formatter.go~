@@ -1,0 +1,108 @@
+package printer
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/shopspring/decimal"
+)
+
+type ReceiptFormatter interface {
+	Format(r *domain.Receipt) string
+}
+
+type PlainTextFormatter struct {
+	width int
+}
+
+func NewPlainTextFormatter(width int) *PlainTextFormatter {
+	if width < 20 {
+		width = 32 // previously was 40
+	}
+	return &PlainTextFormatter{width: width}
+}
+
+func (f *PlainTextFormatter) Format(r *domain.Receipt) string {
+	var b strings.Builder
+
+	f.center(&b, r.StoreName)
+	f.center(&b, r.StoreAddr)
+	b.WriteString("\n")
+
+	for _, item := range r.Items {
+		lineTotal := item.UnitPrice.Mul(decimal.NewFromInt(int64(item.Qty)))
+		f.itemLine(&b, item.Name, item.Qty, item.UnitPrice, lineTotal)
+	}
+
+	f.separator(&b)
+
+	subtotal := f.calculateSubtotal(r.Items)
+	tax := subtotal.Mul(r.TaxRate)
+	total := subtotal.Add(tax)
+	change := r.Payment.Amount.Sub(total)
+
+	f.moneyLine(&b, "Subtotal", subtotal)
+	f.moneyLine(&b, fmt.Sprintf("Tax %s%%", r.TaxRate.Mul(decimal.NewFromInt(100)).StringFixed(0)), tax)
+	f.moneyLine(&b, "TOTAL", total)
+	b.WriteString("\n")
+	f.moneyLine(&b, r.Payment.Method, r.Payment.Amount)
+	f.moneyLine(&b, "Change", change)
+
+	b.WriteString("\n")
+	f.center(&b, "Thank you!")
+	f.center(&b, r.CreatedAt.Format("2006-01-02 15:04"))
+
+	return b.String()
+}
+
+func (f *PlainTextFormatter) center(b *strings.Builder, text string) {
+	if len(text) >= f.width {
+		b.WriteString(text[:f.width])
+		b.WriteByte('\n')
+		return
+	}
+	padding := f.width - len(text)
+	left := padding / 2
+	b.WriteString(strings.Repeat(" ", left))
+	b.WriteString(text)
+	b.WriteByte('\n')
+}
+
+func (f *PlainTextFormatter) separator(b *strings.Builder) {
+	b.WriteString(strings.Repeat("-", f.width))
+	b.WriteByte('\n')
+}
+
+func (f *PlainTextFormatter) itemLine(b *strings.Builder, name string, qty int, unit, total decimal.Decimal) {
+	nameWidth := f.width - 16
+	if len(name) > nameWidth {
+		name = name[:nameWidth-1] + "."
+	}
+	fmt.Fprintf(b, "%-*s %3d %6s %6s\n",
+		nameWidth, name,
+		qty,
+		unit.StringFixed(2),
+		total.StringFixed(2),
+	)
+}
+
+func (f *PlainTextFormatter) moneyLine(b *strings.Builder, label string, amount decimal.Decimal) {
+	amtStr := amount.StringFixed(2)
+	spaces := f.width - len(label) - len(amtStr)
+	if spaces < 1 {
+		spaces = 1
+	}
+	b.WriteString(label)
+	b.WriteString(strings.Repeat(" ", spaces))
+	b.WriteString(amtStr)
+	b.WriteByte('\n')
+}
+
+func (f *PlainTextFormatter) calculateSubtotal(items []domain.ReceiptItem) decimal.Decimal {
+	sum := decimal.Zero
+	for _, item := range items {
+		sum = sum.Add(item.UnitPrice.Mul(decimal.NewFromInt(int64(item.Qty))))
+	}
+	return sum
+}

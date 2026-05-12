@@ -1,0 +1,17 @@
+package main
+
+import "fmt"
+
+type UserService struct {
+	repo *UserRepository
+}
+
+func NewUserService(r *UserRepository) *UserService {
+	return &UserService{repo: r}
+}
+
+func (s *UserService) GetUser(id int) string {
+	// Add some business logic here
+	return s.repo.FindUser(id)
+}
+
