@@ -3,7 +3,7 @@ package server
 import (
     "encoding/json"
     "net/http"
-    "github.com/Sylvester-Kapoko/Receipts/internal/store"
+    "github.com/Sylvester-Kapoko/risitPap/internal/store"
 )
 
 func HandleSuggest(st *store.Store) http.HandlerFunc {

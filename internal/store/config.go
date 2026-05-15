@@ -2,7 +2,7 @@ package store
 
 import (
 	"encoding/json"
-	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
 )
 
 

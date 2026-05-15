@@ -5,8 +5,8 @@ import (
                  "os"
 	"time"
 	"github.com/shopspring/decimal"
-	"github.com/Sylvester-Kapoko/Receipts/domain"
-	"github.com/Sylvester-Kapoko/Receipts/printer"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
+	"github.com/Sylvester-Kapoko/risitPap/printer"
 )
 
 func main() {

@@ -6,9 +6,9 @@ import (
     "net/http"
     "os"
 
-    "github.com/Sylvester-Kapoko/Receipts/internal/server"
-    "github.com/Sylvester-Kapoko/Receipts/internal/store"
-    "github.com/Sylvester-Kapoko/Receipts/printer"
+    "github.com/Sylvester-Kapoko/risitPap/internal/server"
+    "github.com/Sylvester-Kapoko/risitPap/internal/store"
+    "github.com/Sylvester-Kapoko/risitPap/printer"
     "github.com/pkg/browser"
 )
 
@@ -33,7 +33,11 @@ func main() {
         panic(err)
     }
 
-    formatter := printer.NewHtmlFormatter()
+    formatter := printer.NewHtmlFormatter(printer.HtmlConfig{
+         DeveloperName: "Sylvester Kapoko",
+         DeveloperPhone: "0768592677",
+         ShowFooter: true,
+    })
     http.HandleFunc("/", server.HandleIndex(formatter, db))
     http.HandleFunc("/print", server.HandlePrint(formatter, db))
     http.HandleFunc("/history", server.HandleHistory(formatter, db))

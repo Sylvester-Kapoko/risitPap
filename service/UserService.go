@@ -2,7 +2,7 @@ package service
 
 import (
  
-            "github.com/Sylvester-Kapoko/Receipts/repository"
+            "github.com/Sylvester-Kapoko/risitPap/repository"
 )
 
 

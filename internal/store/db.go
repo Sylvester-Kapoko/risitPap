@@ -5,7 +5,7 @@ import (
     "encoding/json"
     "time"
 
-    "github.com/Sylvester-Kapoko/Receipts/domain"
+    "github.com/Sylvester-Kapoko/risitPap/domain"
     _ "modernc.org/sqlite"
 )
 

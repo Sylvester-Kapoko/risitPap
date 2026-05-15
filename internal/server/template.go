@@ -85,6 +85,26 @@ const indexHTML = `<!DOCTYPE html>
   </form>
 
   <script>
+	let itemNameInput = document.getElementById('itemName');
+	let datalist = document.createElement('datalist');
+	datalist.id = 'itemList';
+	itemNameInput.setAttribute('list', 'itemList');
+	itemNameInput.parentNode.appendChild(datalist);
+	itemNameInput.addEventListener('input', function() {
+		if (this.value.length >= 2) {
+			fetch('/suggest?q=' + encodeURIComponent(this.value))
+            		.then(r => r.json())
+            		.then(items => {
+                	datalist.innerHTML = '';
+                	items.forEach(item => {
+                    		let opt = document.createElement('option');
+                    		opt.value = item.name + ' ($' + parseFloat(item.price).toFixed(2) + ')';
+                    		opt.dataset.price = item.price;
+                    		datalist.appendChild(opt);
+                	});
+            	});
+    }
+});
     let items = [];
 
     function addItem() {
@@ -186,26 +206,4 @@ button{margin-top:15px;padding:10px 20px;}</style></head><body>
     <button type="submit">Save Settings</button>
 </form>
 <p><a href="/">← Back to New Receipt</a></p>
-<script>
-	let itemNameInput = document.getElementById('itemName');
-	let datalist = document.createElement('datalist');
-	datalist.id = 'itemList';
-	itemNameInput.setAttribute('list', 'itemList');
-	itemNameInput.parentNode.appendChild(datalist);
-	itemNameInput.addEventListener('input', function() {
-		if (this.value.length >= 2) {
-			fetch('/suggest?q=' + encodeURIComponent(this.value))
-            		.then(r => r.json())
-            		.then(items => {
-                	datalist.innerHTML = '';
-                	items.forEach(item => {
-                    		let opt = document.createElement('option');
-                    		opt.value = item.name + ' ($' + parseFloat(item.price).toFixed(2) + ')';
-                    		opt.dataset.price = item.price;
-                    		datalist.appendChild(opt);
-                	});
-            	});
-    }
-});
-</script>
 </body></html>`

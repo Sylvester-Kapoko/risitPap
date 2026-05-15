@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
 )
 
 type PlainTextFormatter struct {

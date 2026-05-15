@@ -5,9 +5,9 @@ import (
     "net/http"
     "time"
 
-    "github.com/Sylvester-Kapoko/Receipts/internal/store"
-    "github.com/Sylvester-Kapoko/Receipts/printer"
-    "github.com/Sylvester-Kapoko/Receipts/domain"
+    "github.com/Sylvester-Kapoko/risitPap/domain"
+    "github.com/Sylvester-Kapoko/risitPap/internal/store"
+    "github.com/Sylvester-Kapoko/risitPap/printer"
 )
 
 const historyHTML = `<!DOCTYPE html>
@@ -32,11 +32,11 @@ func HandleHistory(formatter *printer.HtmlFormatter, st *store.Store) http.Handl
         }
         rows := []row{}
         for _, rec := range receipts {
-	currency := rec.Currency
-	if currency == "" {
-		currency = "Ksh"
-	}
- 	rows = append(rows, row{rec.TransactionID, rec.StoreName,
+            currency := rec.Currency
+            if currency == "" {
+                currency = "Ksh"
+            }
+            rows = append(rows, row{rec.TransactionID, rec.StoreName,
                 domain.DisplayCurrency(rec.Total(), currency), rec.CreatedAt})
         }
         tmpl.Execute(w, rows)
@@ -51,6 +51,12 @@ func HandleView(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerF
             http.NotFound(w, r)
             return
         }
-        w.Write([]byte(formatter.Format(receipt)))
+        formatted, err := formatter.Format(receipt)
+        if err != nil {
+            http.Error(w, "Failed to format receipt", http.StatusInternalServerError)
+            return
+        }
+        w.Header().Set("Content-Type", "text/html; charset=utf-8")
+        w.Write([]byte(formatted))
     }
 }

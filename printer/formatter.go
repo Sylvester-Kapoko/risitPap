@@ -1,7 +1,7 @@
 package printer
 
 import (
-	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
 )
 
 type ReceiptFormatter interface {

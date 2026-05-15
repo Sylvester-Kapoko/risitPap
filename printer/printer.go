@@ -3,7 +3,7 @@ package printer
 import (
 	"io"
 
-	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
 )
 
 // ReceiptPrinter sends a formatted receipt to a writer.
