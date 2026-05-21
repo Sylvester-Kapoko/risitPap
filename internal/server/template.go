@@ -30,12 +30,15 @@ const indexHTML = `<!DOCTYPE html>
   <form id="receiptForm" method="POST" action="/print" target="_blank">
     <label>Store name</label>
     <input name="storeName" value="{{.StoreName}}" placeholder="Your Business Name" required>
-
+   
     <label>Store address</label>
     <input name="storeAddr" value="{{.StoreAddr}}" placeholder="30500 Cathedral Street, Lodwar, Township" required>
      
     <label>Store Phone</label>
     <input name="storePhone" value="{{.StorePhone}}" placeholder="25476859....">
+
+    <label>Receipt Date (leave empty for today)</label>
+    <input name="receiptDate" type="date">
 
     <label>Tax PIN /  VAT</label>
     <input name="storeTaxID" value="{{.StoreTaxID}}" placeholder="Tax Pin / VAT (optional)" required>

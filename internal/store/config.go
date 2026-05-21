@@ -1,25 +1,30 @@
 package store
 
 import (
+	"database/sql"
 	"encoding/json"
+
 	"github.com/Sylvester-Kapoko/risitPap/domain"
 )
 
-
-func (s *Store) SaveConfig (cfg *domain.StoreConfig) error {
+func (s *Store) SaveConfig(cfg *domain.StoreConfig) error {
 	data, _ := json.Marshal(cfg)
-	_ , err := s.db.Exec("INSERT OR REPLACE INTO config (id, data) VALUES (1, ?) ", string(data))
+	_, err := s.db.Exec(
+		"INSERT OR REPLACE INTO config (id, data) VALUES (1, ?)",
+		string(data),
+	)
 	return err
-
 }
 
 func (s *Store) LoadConfig() (*domain.StoreConfig, error) {
 	var data string
 	err := s.db.QueryRow("SELECT data FROM config WHERE id = 1").Scan(&data)
+	if err == sql.ErrNoRows {
+		return &domain.StoreConfig{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
-
 	var cfg domain.StoreConfig
 	if err := json.Unmarshal([]byte(data), &cfg); err != nil {
 		return nil, err

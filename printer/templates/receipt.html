@@ -1,23 +1,132 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Receipt</title>
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<html><head><meta charset="UTF-8"><title>Receipt</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+  }
+  .receipt {
+    max-width: 400px;
+    width: 100%;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin: 0 auto;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .header h2 { margin: 0 0 5px 0; }
+  .header p { margin: 2px 0; }
+  .dotted-line {
+    border: none;
+    border-top: 2px dotted #000;
+    margin: 10px 0;
+  }
 
-    <style>
-        body { font-family: monospace; max-width: 320px; }
-    </style>
-</head>
+.items {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin: 10px 0;
+    word-break: break-word;
+}
+.items th, .items td {
+    padding: 5px;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: break-word;
+}
+.items th:nth-child(1), .items td:nth-child(1) { width: 40%; }
+.items th:nth-child(2), .items td:nth-child(2) { width: 10%; }
+.items th:nth-child(3), .items td:nth-child(3) { width: 25%; }
+.items th:nth-child(4), .items td:nth-child(4) { width: 25%; }
 
-<body>
+  .totals {
+    margin: 10px 0;
+  }
+  .totals p { margin: 3px 0; }
+  .totals .total-line { font-weight: bold; }
+  .footer {
+    text-align: center;
+    margin-top: 15px;
+    border-top: 1px solid #000;
+    padding-top: 10px;
+    font-size: 0.9em;
+  }
+  .print-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 15px 0 5px 0;
+    background: #f5a623;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+  }
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    color: #666;
+  }
+  @media print {
+    body { background: white; }
+    .receipt { box-shadow: none; border: none; }
+    .print-btn, .back-link { display: none; }
+  }
+</style></head><body>
+<div class="receipt">
+  <div class="header">
+    <h2>{{.StoreName}}</h2>
+    <p>{{.StoreAddr}}</p>
+    {{if .ShowPhone}}<p>Tel: {{.StorePhone}}</p>{{end}}
+    {{if .ShowTaxID}}<p>KRA: {{.StoreTaxID}}</p>{{end}}
+    <p>Transaction: {{.TransactionID}}</p>
+  </div>
 
-<!-- 📌 LINE ~12: FULL RECEIPT CONTAINER -->
-<div id="receipt-container"
-     hx-get="/receipt/{{.ID}}/fragment"
-     hx-trigger="load"
-     hx-swap="innerHTML">
+  <hr class="dotted-line">
+
+  <table class="items">
+    <tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+    {{range .Items}}
+    <tr>
+      <td>{{.Name}}</td>
+      <td>{{.Qty}}</td>
+      <td>{{.UnitPrice}}</td>
+      <td>{{.LineTotal}}</td>
+    </tr>
+    {{end}}
+  </table>
+
+  <div class="totals">
+    <p>Subtotal: {{.Subtotal}}</p>
+    {{if .TaxRate}}
+    <p>Tax ({{.TaxRate}}%): {{.Tax}}</p>
+    {{end}}
+    <p class="total-line">TOTAL: {{.Total}}</p>
+    <p>{{.PaymentMethod}}: {{.PaymentAmount}}</p>
+    <p>Change: {{.Change}}</p>
+  </div>
+
+  <div class="footer">
+    {{if .Footer.Show}}
+    <p>System developed by {{.Footer.DeveloperName}}<br>{{.Footer.DeveloperPhone}}</p>
+    {{end}}
+    <p>{{.Footer.CreatedAt}}</p>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">🖨 Print to Paper</button>
+  <a href="/" class="back-link">← New Receipt</a>
 </div>
-
-</body>
-</html>
+</body></html>

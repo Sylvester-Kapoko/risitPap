@@ -1,9 +1,7 @@
 package printer
 
-import (
-	"github.com/Sylvester-Kapoko/risitPap/domain"
-)
+import "github.com/Sylvester-Kapoko/risitPap/domain"
 
 type ReceiptFormatter interface {
-	Format(r *domain.Receipt) string
+    Format(r *domain.Receipt) (string, error)
 }

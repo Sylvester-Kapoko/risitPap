@@ -18,7 +18,7 @@ func NewPlainTextFormatter(width int) *PlainTextFormatter {
 	return &PlainTextFormatter{width: width}
 }
 
-func (f *PlainTextFormatter) Format(r *domain.Receipt) string {
+func (f *PlainTextFormatter) Format(r *domain.Receipt) (string, error) {
 	var b strings.Builder
 
 	center(&b, r.StoreName, f.width)
@@ -44,5 +44,5 @@ func (f *PlainTextFormatter) Format(r *domain.Receipt) string {
 	center(&b, "Thank you!", f.width)
 	center(&b, r.CreatedAt.Format("2006-01-02 15:04"), f.width)
 
-	return b.String()
+	return b.String(), nil
 }

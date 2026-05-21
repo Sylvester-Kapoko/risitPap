@@ -66,4 +66,12 @@ func TrialDaysLeft() int {
 
 }
 
- 
+ // ValidLicense satisfies the ReceiptStore interface.
+func (s *Store) ValidLicense() bool {
+    return ValidLicense()
+}
+
+// TrialDaysLeft satisfies the ReceiptStore interface.
+func (s *Store) TrialDaysLeft() int {
+    return TrialDaysLeft()
+}

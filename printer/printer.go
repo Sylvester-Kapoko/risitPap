@@ -19,7 +19,10 @@ func NewReceiptPrinter(f ReceiptFormatter, w io.Writer) *ReceiptPrinter {
 
 // Print formats the receipt and writes it to the output.
 func (p *ReceiptPrinter) Print(receipt *domain.Receipt) error {
-	output := p.formatter.Format(receipt)
-	_, err := io.WriteString(p.writer, output)
-	return err
+    output, err := p.formatter.Format(receipt)
+    if err != nil {
+        return err
+    }
+    _, err = io.WriteString(p.writer, output)
+    return err
 }
