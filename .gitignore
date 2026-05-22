@@ -76,4 +76,5 @@ temp/
 # HTMX/static build artifacts
 # =========================
 public/build/
-static/build/
+static/build/receipts.db
+trial.start
