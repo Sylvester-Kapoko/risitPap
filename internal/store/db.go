@@ -8,6 +8,7 @@ import (
 
     "github.com/Sylvester-Kapoko/risitPap/domain"
     _ "modernc.org/sqlite"
+    "golang.org/x/crypto/bcrypt"
 )
 
 type Store struct{ db *sql.DB }
@@ -40,8 +41,17 @@ func Open(path string) (*Store, error) {
         return nil, fmt.Errorf("create items table: %w", err)
     }
 
+    if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password_hash TEXT NOT NULL
+    )`); err != nil {
+        return nil, fmt.Errorf("create users table: %w", err)
+    }
+
     return &Store{db: db}, nil
 }
+
+// --- Receipt methods ---
 
 func (s *Store) Save(r *domain.Receipt) error {
     r.CreatedAt = time.Now()
@@ -114,4 +124,35 @@ func (s *Store) SuggestItems(prefix string) ([]map[string]string, error) {
         results = append(results, map[string]string{"name": name, "price": price})
     }
     return results, rows.Err()
+}
+
+// --- User / Auth methods ---
+
+func (s *Store) HasUsers() (bool, error) {
+    var count int
+    err := s.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+    return count > 0, err
+}
+
+func (s *Store) CreateUser(username, password string) error {
+    hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        return err
+    }
+    _, err = s.db.Exec("INSERT INTO users (username, password_hash) VALUES (?, ?)", username, string(hash))
+    return err
+}
+
+func (s *Store) ValidateUser(username, password string) (*domain.User, error) {
+    var u domain.User
+    var hash string
+    err := s.db.QueryRow("SELECT username, password_hash FROM users WHERE username = ?", username).Scan(&u.Username, &hash)
+    if err != nil {
+        return nil, err
+    }
+    if bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
+        return nil, sql.ErrNoRows
+    }
+    u.PasswordHash = "" // never return the hash
+    return &u, nil
 }

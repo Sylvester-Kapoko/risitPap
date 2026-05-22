@@ -78,3 +78,5 @@ temp/
 public/build/
 static/build/receipts.db
 trial.start
+receipts.db
+trial.start

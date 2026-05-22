@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
-  "log"
+
 	"github.com/Sylvester-Kapoko/risitPap/internal/server"
 	"github.com/Sylvester-Kapoko/risitPap/internal/store"
 	"github.com/Sylvester-Kapoko/risitPap/printer"
@@ -24,13 +25,22 @@ func main() {
 			_, _ = fmt.Scanln()
 			os.Exit(1)
 		}
-
 		fmt.Printf("Trial mode: %d days remaining.\n", daysLeft)
 	}
 
+	// --- Database ---
 	db, err := store.Open("receipts.db")
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to open database: %v", err)
+	}
+
+	// --- Default admin user (if none exist) ---
+	if hasUsers, err := db.HasUsers(); err == nil && !hasUsers {
+		if err := db.CreateUser("admin", "admin"); err != nil {
+			log.Printf("WARNING: could not create default admin user: %v", err)
+		} else {
+			log.Println("Default admin user created (admin / admin). Change password after first login.")
+		}
 	}
 
 	formatter := printer.NewHtmlFormatter(printer.HtmlConfig{
@@ -38,13 +48,20 @@ func main() {
 		DeveloperPhone: "0768592677",
 		ShowFooter:     true,
 	})
-	http.HandleFunc("/", server.HandleIndex(formatter, db))
-	http.HandleFunc("/print", server.HandlePrint(formatter, db))
-	http.HandleFunc("/history", server.HandleHistory(formatter, db))
-	http.HandleFunc("/view", server.HandleView(formatter, db))
+
+	// --- Public routes (no authentication required) ---
+	http.HandleFunc("/login", server.HandleLogin(db))
+	http.HandleFunc("/logout", server.HandleLogout(db))
+	// registration is only allowed when no users exist (single-owner setup)
 	http.HandleFunc("/register", server.HandleRegisterForm(db))
 	http.HandleFunc("/register/save", server.HandleRegisterSave(db))
-	http.HandleFunc("/suggest", server.HandleSuggest(db))
+
+	// --- Protected routes (require login) ---
+	http.HandleFunc("/", server.RequireLogin(server.HandleIndex(formatter, db)))
+	http.HandleFunc("/print", server.RequireLogin(server.HandlePrint(formatter, db)))
+	http.HandleFunc("/history", server.RequireLogin(server.HandleHistory(formatter, db)))
+	http.HandleFunc("/view", server.RequireLogin(server.HandleView(formatter, db)))
+	http.HandleFunc("/suggest", server.RequireLogin(server.HandleSuggest(db)))
 
 	fmt.Println("Receipt Printer running at:")
 	fmt.Println("  http://localhost:8080")
@@ -57,9 +74,9 @@ func main() {
 	}
 
 	if err := browser.OpenURL("http://localhost:8080"); err != nil {
-    fmt.Println("could not open browser:", err)
-  }
+		fmt.Println("could not open browser:", err)
+	}
 	if err := http.ListenAndServe(":8080", nil); err != nil {
-    log.Fatalf("server error: %v", err)
-  }
+		log.Fatalf("server error: %v", err)
+	}
 }
