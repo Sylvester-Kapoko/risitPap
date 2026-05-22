@@ -1,13 +1,13 @@
 package server
 
 import (
-    "html/template"
-    "net/http"
-    "time"
+	"html/template"
+	"net/http"
+	"time"
 
-    "github.com/Sylvester-Kapoko/risitPap/domain"
-    "github.com/Sylvester-Kapoko/risitPap/internal/store"
-    "github.com/Sylvester-Kapoko/risitPap/printer"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
+	"github.com/Sylvester-Kapoko/risitPap/internal/store"
+	"github.com/Sylvester-Kapoko/risitPap/printer"
 )
 
 const historyHTML = `<!DOCTYPE html>
@@ -23,40 +23,40 @@ a{color:blue;}</style></head><body>
 </body></html>`
 
 func HandleHistory(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc {
-    tmpl := template.Must(template.New("history").Parse(historyHTML))
-    return func(w http.ResponseWriter, r *http.Request) {
-        receipts, _ := st.List(time.Time{})
-        type row struct {
-            TransactionID, StoreName, Total string
-            CreatedAt                       time.Time
-        }
-        rows := []row{}
-        for _, rec := range receipts {
-            currency := rec.Currency
-            if currency == "" {
-                currency = "Ksh"
-            }
-            rows = append(rows, row{rec.TransactionID, rec.StoreName,
-                domain.DisplayCurrency(rec.Total(), currency), rec.CreatedAt})
-        }
-        tmpl.Execute(w, rows)
-    }
+	tmpl := template.Must(template.New("history").Parse(historyHTML))
+	return func(w http.ResponseWriter, r *http.Request) {
+		receipts, _ := st.List(time.Time{})
+		type row struct {
+			TransactionID, StoreName, Total string
+			CreatedAt                       time.Time
+		}
+		rows := []row{}
+		for _, rec := range receipts {
+			currency := rec.Currency
+			if currency == "" {
+				currency = "Ksh"
+			}
+			rows = append(rows, row{rec.TransactionID, rec.StoreName,
+				domain.DisplayCurrency(rec.Total(), currency), rec.CreatedAt})
+		}
+		_ = tmpl.Execute(w, rows)
+	}
 }
 
 func HandleView(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        id := r.URL.Query().Get("id")
-        receipt, err := st.Get(id)
-        if err != nil {
-            http.NotFound(w, r)
-            return
-        }
-        formatted, err := formatter.Format(receipt)
-        if err != nil {
-            http.Error(w, "Failed to format receipt", http.StatusInternalServerError)
-            return
-        }
-        w.Header().Set("Content-Type", "text/html; charset=utf-8")
-        w.Write([]byte(formatted))
-    }
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		receipt, err := st.Get(id)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		formatted, err := formatter.Format(receipt)
+		if err != nil {
+			http.Error(w, "Failed to format receipt", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write([]byte(formatted))
+	}
 }

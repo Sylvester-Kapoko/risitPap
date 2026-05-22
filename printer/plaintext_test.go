@@ -1,15 +1,22 @@
 package printer
 
-package printer
-
 import (
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
 	"github.com/shopspring/decimal"
 )
+
+func mustFormat(t *testing.T, f *PlainTextFormatter, r *domain.Receipt) string {
+	t.Helper()
+	out, err := f.Format(r)
+	if err != nil {
+		t.Fatalf("Format() error: %v", err)
+	}
+	return out
+}
 
 func TestPlainTextFormatter(t *testing.T) {
 	formatter := NewPlainTextFormatter(40)
@@ -20,6 +27,8 @@ func TestPlainTextFormatter(t *testing.T) {
 			StoreName:     "Acme Widget Co.",
 			StoreAddr:     "123 Main Street",
 			TaxRate:       decimal.NewFromFloat(0.0825),
+			HasVAT:        true,
+			Currency:      "$",
 			Payment: domain.Payment{
 				Method: "Cash",
 				Amount: decimal.NewFromInt(20),
@@ -36,7 +45,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("renders header with store name centered at the top", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "Acme Widget Co.") {
 			t.Errorf("expected store name in output:\n%s", output)
 		}
@@ -44,7 +53,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("prints store address below store name", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		storeIdx := strings.Index(output, "Acme Widget Co.")
 		addrIdx := strings.Index(output, "123 Main Street")
 		if storeIdx == -1 || addrIdx == -1 || storeIdx > addrIdx {
@@ -54,7 +63,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("prints transaction ID that is unique and clearly labeled", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "Transaction: TXN-001") {
 			t.Errorf("expected transaction ID in output:\n%s", output)
 		}
@@ -62,7 +71,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("prints transaction date and time", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "2026-04-27 14:30") {
 			t.Errorf("expected date and time in output:\n%s", output)
 		}
@@ -70,7 +79,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("separates sections with a horizontal rule", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "----------------------------------------") {
 			t.Errorf("expected separator line in output:\n%s", output)
 		}
@@ -78,7 +87,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("renders footer with thank-you message", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "Thank you!") {
 			t.Errorf("expected thank you in output:\n%s", output)
 		}
@@ -88,7 +97,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("prints each item on its own line with quantity, description, and price", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "Widget") {
 			t.Errorf("expected Widget in items:\n%s", output)
 		}
@@ -99,8 +108,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("formats quantities as integers without decimal places", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
-		// Quantity 2 should appear as "2" not "2.00"
+		output := mustFormat(t, formatter, receipt)
 		lines := strings.Split(output, "\n")
 		for _, line := range lines {
 			if strings.Contains(line, "Super Deluxe Widget") {
@@ -115,7 +123,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("displays subtotal line above tax line", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		subIdx := strings.Index(output, "Subtotal")
 		taxIdx := strings.Index(output, "Tax")
 		if subIdx == -1 || taxIdx == -1 || subIdx > taxIdx {
@@ -125,7 +133,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("shows tax as a separate line with applied percentage in parentheses", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "Tax (8.25%)") {
 			t.Errorf("expected tax percentage in output:\n%s", output)
 		}
@@ -133,7 +141,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("prints grand total after tax", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		taxIdx := strings.Index(output, "Tax")
 		totalIdx := strings.Index(output, "TOTAL")
 		if taxIdx == -1 || totalIdx == -1 || taxIdx > totalIdx {
@@ -143,8 +151,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("displays all currency values with exactly two decimal places", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
-		// Check that dollar amounts have .00 or .99 format
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "9.99") {
 			t.Errorf("expected two-decimal currency values:\n%s", output)
 		}
@@ -157,7 +164,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("shows payment method on a dedicated line", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "Cash") {
 			t.Errorf("expected payment method in output:\n%s", output)
 		}
@@ -165,7 +172,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("displays amount tendered and change due when payment is cash", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "$20.00") {
 			t.Errorf("expected payment amount:\n%s", output)
 		}
@@ -174,13 +181,12 @@ func TestPlainTextFormatter(t *testing.T) {
 		}
 	})
 
-	// === Edge Case Tests (currently passing) ===
+	// === Edge Case Tests ===
 
 	t.Run("handles receipt with no items", func(t *testing.T) {
 		receipt := makeReceipt()
 		receipt.Items = nil
-		output := formatter.Format(receipt)
-		// Should still render without panicking
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "TOTAL") {
 			t.Errorf("expected total even with no items:\n%s", output)
 		}
@@ -189,7 +195,7 @@ func TestPlainTextFormatter(t *testing.T) {
 	t.Run("preserves formatting when store name is a single character", func(t *testing.T) {
 		receipt := makeReceipt()
 		receipt.StoreName = "A"
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "A") {
 			t.Errorf("expected single-char store name in output:\n%s", output)
 		}
@@ -198,7 +204,7 @@ func TestPlainTextFormatter(t *testing.T) {
 	t.Run("preserves formatting when store name is 50 characters", func(t *testing.T) {
 		receipt := makeReceipt()
 		receipt.StoreName = "A Very Long Store Name That Goes On And On Forever"
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if len(output) == 0 {
 			t.Error("expected output for long store name, got empty string")
 		}
@@ -209,7 +215,7 @@ func TestPlainTextFormatter(t *testing.T) {
 		receipt.Items = []domain.ReceiptItem{
 			{Name: "Free Sample", Qty: 1, UnitPrice: decimal.Zero},
 		}
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "0.00") {
 			t.Errorf("expected zero price formatted as 0.00:\n%s", output)
 		}
@@ -219,7 +225,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("uses fixed-width formatting at configured width", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		lines := strings.Split(output, "\n")
 		for i, line := range lines {
 			if len(line) > 40 {
@@ -231,7 +237,7 @@ func TestPlainTextFormatter(t *testing.T) {
 	t.Run("renders correctly at 40 columns", func(t *testing.T) {
 		f := NewPlainTextFormatter(40)
 		receipt := makeReceipt()
-		output := f.Format(receipt)
+		output := mustFormat(t, f, receipt)
 		lines := strings.Split(output, "\n")
 		for i, line := range lines {
 			if len(line) > 40 {
@@ -243,7 +249,7 @@ func TestPlainTextFormatter(t *testing.T) {
 	t.Run("renders correctly at 80 columns", func(t *testing.T) {
 		f := NewPlainTextFormatter(80)
 		receipt := makeReceipt()
-		output := f.Format(receipt)
+		output := mustFormat(t, f, receipt)
 		lines := strings.Split(output, "\n")
 		for i, line := range lines {
 			if len(line) > 80 {
@@ -255,7 +261,7 @@ func TestPlainTextFormatter(t *testing.T) {
 	t.Run("renders correctly at 120 columns", func(t *testing.T) {
 		f := NewPlainTextFormatter(120)
 		receipt := makeReceipt()
-		output := f.Format(receipt)
+		output := mustFormat(t, f, receipt)
 		lines := strings.Split(output, "\n")
 		for i, line := range lines {
 			if len(line) > 120 {
@@ -268,7 +274,7 @@ func TestPlainTextFormatter(t *testing.T) {
 
 	t.Run("displays currency symbol next to all monetary values", func(t *testing.T) {
 		receipt := makeReceipt()
-		output := formatter.Format(receipt)
+		output := mustFormat(t, formatter, receipt)
 		if !strings.Contains(output, "$") {
 			t.Errorf("expected dollar sign in output:\n%s", output)
 		}

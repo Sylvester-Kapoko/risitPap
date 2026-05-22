@@ -24,7 +24,7 @@ func separator(b *strings.Builder, width int) {
 }
 
 func itemLine(b *strings.Builder, name, qty, unit, total string, width int) {
-	nameWidth := width - 16
+	nameWidth := width - 18
 	if len(name) > nameWidth {
 		name = name[:nameWidth-1] + "."
 	}

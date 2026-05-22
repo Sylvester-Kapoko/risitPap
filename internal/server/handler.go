@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+  "log"
 	"github.com/Sylvester-Kapoko/risitPap/domain"
 	"github.com/Sylvester-Kapoko/risitPap/internal/store"
 	"github.com/Sylvester-Kapoko/risitPap/printer"
@@ -28,7 +28,7 @@ func HandleIndex(formatter *printer.HtmlFormatter, st store.ReceiptStore) http.H
 	tmpl := template.Must(template.New("index").Parse(indexHTML))
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !st.ValidLicense() && st.TrialDaysLeft() <= 0 {
-			w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trial Expired</title>
+		      _, _ =	w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trial Expired</title>
             <style>body{font-family:system-ui,sans-serif;max-width:500px;margin:auto;padding:20px;text-align:center;}
             a{color:#007bff;}</style></head><body>
             <h1>⏰ Trial Expired</h1>
@@ -44,7 +44,7 @@ func HandleIndex(formatter *printer.HtmlFormatter, st store.ReceiptStore) http.H
 		if cfg == nil {
 			cfg = &domain.StoreConfig{}
 		}
-		tmpl.Execute(w, cfg)
+		_ = tmpl.Execute(w, cfg)
 	}
 }
 
@@ -88,7 +88,7 @@ func HandlePrint(formatter printer.ReceiptFormatter, st store.ReceiptStore) http
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(formatted))
+		_,_ = w.Write([]byte(formatted))
 	}
 }
 
@@ -118,13 +118,15 @@ func HandleRegisterForm(st store.ReceiptStore) http.HandlerFunc {
 		if cfg == nil {
 			cfg = &domain.StoreConfig{}
 		}
-		tmpl.Execute(w, cfg)
+		_ = tmpl.Execute(w, cfg)
 	}
 }
 
 func HandleRegisterSave(st store.ReceiptStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		if err := r.ParseForm(); err != nil {
+       log.Printf("ParseForm error: %v", err)
+    }
 		vatRegistered := r.FormValue("vatRegistered") == "true"
 		cfg := &domain.StoreConfig{
 			StoreName:     r.FormValue("storeName"),
@@ -146,12 +148,17 @@ func HandleRegisterSave(st store.ReceiptStore) http.HandlerFunc {
 
 func generateTransactionID() string {
 	b := make([]byte, 3)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+    log.Printf("rand.Read failed: %v", err)
+  }
 	return fmt.Sprintf("INV-%s-%s", nowInEAT().Format("20060102"), hex.EncodeToString(b))
 }
 
 func parseForm(r *http.Request) *domain.Receipt {
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+    // log or ignore
+    log.Printf("parseform error: %v", err)
+  }
 	taxRate, _ := decimal.NewFromString(r.FormValue("taxRate"))
 	payAmt, _ := decimal.NewFromString(r.FormValue("paymentAmount"))
 	var items []domain.ReceiptItem

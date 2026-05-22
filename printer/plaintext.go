@@ -23,11 +23,12 @@ func (f *PlainTextFormatter) Format(r *domain.Receipt) (string, error) {
 
 	center(&b, r.StoreName, f.width)
 	center(&b, r.StoreAddr, f.width)
+	center(&b, fmt.Sprintf("Transaction: %s", r.TransactionID), f.width)
 	b.WriteString("\n")
 
 	for _, item := range r.Items {
 		itemLine(&b, item.Name, fmt.Sprintf("%d", item.Qty),
-			domain.DisplayCurrency(item.UnitPrice, r.Currency),domain.DisplayCurrency(item.LineTotal(), r.Currency), f.width)
+			domain.DisplayCurrency(item.UnitPrice, r.Currency), domain.DisplayCurrency(item.LineTotal(), r.Currency), f.width)
 	}
 
 	separator(&b, f.width)
@@ -35,7 +36,7 @@ func (f *PlainTextFormatter) Format(r *domain.Receipt) (string, error) {
 	if r.HasVAT {
 		moneyLine(&b, fmt.Sprintf("Tax (%s%%)", r.TaxRatePct()), domain.DisplayCurrency(r.Tax(), r.Currency), f.width)
 	}
-	moneyLine(&b, "TOTAL",domain.DisplayCurrency(r.Total(), r.Currency), f.width)
+	moneyLine(&b, "TOTAL", domain.DisplayCurrency(r.Total(), r.Currency), f.width)
 	b.WriteString("\n")
 	moneyLine(&b, r.Payment.Method, domain.DisplayCurrency(r.Payment.Amount, r.Currency), f.width)
 	moneyLine(&b, "Change", domain.DisplayCurrency(r.Change(), r.Currency), f.width)

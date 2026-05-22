@@ -15,8 +15,8 @@ type ReceiptItem struct {
 }
 
 type Receipt struct {
-	ID            string        `json:"id"`
-	TransactionID string        `json:"transaction_id"`
+	ID            string `json:"id"`
+	TransactionID string `json:"transaction_id"`
 	StoreName     string
 	StoreAddr     string
 	StorePhone    string
@@ -97,10 +97,10 @@ const (
 // PaymentState returns the current payment status.
 // For simplicity, Cash is always Paid; other methods are Pending until confirmed.
 func (r *Receipt) PaymentState() PaymentStatus {
-    if r.Payment.Status == "" {
-        return StatusPending
-    }
-    return r.Payment.Status
+	if r.Payment.Status == "" {
+		return StatusPending
+	}
+	return r.Payment.Status
 }
 
 func (r *Receipt) AmountState() PaymentState {

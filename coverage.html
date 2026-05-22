@@ -1,0 +1,1350 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>demo: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/Sylvester-Kapoko/risitPap/cmd/demo/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/Sylvester-Kapoko/risitPap/cmd/keygen/main.go (0.0%)</option>
+				
+				<option value="file2">github.com/Sylvester-Kapoko/risitPap/cmd/server/main.go (0.0%)</option>
+				
+				<option value="file3">github.com/Sylvester-Kapoko/risitPap/domain/money.go (0.0%)</option>
+				
+				<option value="file4">github.com/Sylvester-Kapoko/risitPap/domain/receipt.go (40.5%)</option>
+				
+				<option value="file5">github.com/Sylvester-Kapoko/risitPap/internal/Handler.go (0.0%)</option>
+				
+				<option value="file6">github.com/Sylvester-Kapoko/risitPap/internal/server/handler.go (52.5%)</option>
+				
+				<option value="file7">github.com/Sylvester-Kapoko/risitPap/internal/server/history.go (0.0%)</option>
+				
+				<option value="file8">github.com/Sylvester-Kapoko/risitPap/internal/server/suggest.go (0.0%)</option>
+				
+				<option value="file9">github.com/Sylvester-Kapoko/risitPap/internal/store/config.go (0.0%)</option>
+				
+				<option value="file10">github.com/Sylvester-Kapoko/risitPap/internal/store/db.go (0.0%)</option>
+				
+				<option value="file11">github.com/Sylvester-Kapoko/risitPap/internal/store/license.go (0.0%)</option>
+				
+				<option value="file12">github.com/Sylvester-Kapoko/risitPap/printer/html.go (0.0%)</option>
+				
+				<option value="file13">github.com/Sylvester-Kapoko/risitPap/printer/layout.go (90.9%)</option>
+				
+				<option value="file14">github.com/Sylvester-Kapoko/risitPap/printer/plaintext.go (95.5%)</option>
+				
+				<option value="file15">github.com/Sylvester-Kapoko/risitPap/printer/printer.go (0.0%)</option>
+				
+				<option value="file16">github.com/Sylvester-Kapoko/risitPap/repository/UserRepository.go (0.0%)</option>
+				
+				<option value="file17">github.com/Sylvester-Kapoko/risitPap/service/UserService.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "os"
+        "time"
+
+        "github.com/Sylvester-Kapoko/risitPap/domain"
+        "github.com/Sylvester-Kapoko/risitPap/printer"
+        "github.com/shopspring/decimal"
+)
+
+func main() <span class="cov0" title="0">{
+        receipt := &amp;domain.Receipt{
+                StoreName: "BOB'S CAFE",
+                StoreAddr: "123 Main St",
+                Items: []domain.ReceiptItem{
+                        {Name: "Burger", Qty: 2, UnitPrice: decimal.RequireFromString("12.00")},
+                        {Name: "Fries", Qty: 1, UnitPrice: decimal.RequireFromString("5.00")},
+                },
+                TaxRate: decimal.RequireFromString("0.10"),
+                Payment: domain.Payment{
+                        Method: "Cash",
+                        Amount: decimal.RequireFromString("40.00"),
+                },
+                CreatedAt: time.Now(),
+        }
+
+        formatter := printer.NewPlainTextFormatter(32)
+        receiptPrinter := printer.NewReceiptPrinter(formatter, os.Stdout)
+
+        if err := receiptPrinter.Print(receipt); err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "crypto/hmac"
+        "crypto/sha256"
+        "encoding/hex"
+        "fmt"
+        "os"
+        "strings"
+)
+
+const secret = "mK9vN2xP5rF8jL3wH6tY1qA4cG7uE0bD5sM8pR2vJ9nK6wT3yF1aC4hU7oX0zL5"
+
+func main() <span class="cov0" title="0">{
+        if len(os.Args) &lt; 2 </span><span class="cov0" title="0">{
+                fmt.Println("Usage: keygen user@email.com")
+                return
+        }</span>
+        <span class="cov0" title="0">email := strings.ToLower(strings.TrimSpace(os.Args[1]))
+        mac := hmac.New(sha256.New, []byte(secret))
+        mac.Write([]byte(email))
+        sig := hex.EncodeToString(mac.Sum(nil))[:16]
+        fmt.Printf("%s-%s\n", email, sig)
+        fmt.Println("\nCreate a file named license.key with the above line as its content.")</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        "fmt"
+        "net"
+        "net/http"
+        "os"
+  "log"
+        "github.com/Sylvester-Kapoko/risitPap/internal/server"
+        "github.com/Sylvester-Kapoko/risitPap/internal/store"
+        "github.com/Sylvester-Kapoko/risitPap/printer"
+        "github.com/pkg/browser"
+)
+
+func main() <span class="cov0" title="0">{
+        // --- License / Trial Check ---
+        hasLicense := store.ValidLicense()
+        if !hasLicense </span><span class="cov0" title="0">{
+                daysLeft := store.TrialDaysLeft()
+                if daysLeft &lt;= 0 </span><span class="cov0" title="0">{
+                        fmt.Println("Your 30-day trial has expired.")
+                        fmt.Println("Whatsapp or call 0768592677 to purchase a license.")
+                        fmt.Println("Press Enter to exit.  .  .")
+                        _, _ = fmt.Scanln()
+                        os.Exit(1)
+                }</span>
+
+                <span class="cov0" title="0">fmt.Printf("Trial mode: %d days remaining.\n", daysLeft)</span>
+        }
+
+        <span class="cov0" title="0">db, err := store.Open("receipts.db")
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">formatter := printer.NewHtmlFormatter(printer.HtmlConfig{
+                DeveloperName:  "Sylvester Kapoko",
+                DeveloperPhone: "0768592677",
+                ShowFooter:     true,
+        })
+        http.HandleFunc("/", server.HandleIndex(formatter, db))
+        http.HandleFunc("/print", server.HandlePrint(formatter, db))
+        http.HandleFunc("/history", server.HandleHistory(formatter, db))
+        http.HandleFunc("/view", server.HandleView(formatter, db))
+        http.HandleFunc("/register", server.HandleRegisterForm(db))
+        http.HandleFunc("/register/save", server.HandleRegisterSave(db))
+        http.HandleFunc("/suggest", server.HandleSuggest(db))
+
+        fmt.Println("Receipt Printer running at:")
+        fmt.Println("  http://localhost:8080")
+        // Print local IP for phone access
+        addrs, _ := net.InterfaceAddrs()
+        for _, a := range addrs </span><span class="cov0" title="0">{
+                if ipnet, ok := a.(*net.IPNet); ok &amp;&amp; !ipnet.IP.IsLoopback() &amp;&amp; ipnet.IP.To4() != nil </span><span class="cov0" title="0">{
+                        fmt.Printf("  http://%s:8080\n", ipnet.IP)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if err := browser.OpenURL("http://localhost:8080"); err != nil </span><span class="cov0" title="0">{
+    fmt.Println("could not open browser:", err)
+  }</span>
+        <span class="cov0" title="0">if err := http.ListenAndServe(":8080", nil); err != nil </span><span class="cov0" title="0">{
+    log.Fatalf("server error: %v", err)
+  }</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package domain
+
+import (
+        "fmt"
+
+        "github.com/shopspring/decimal"
+)
+
+// Money wraps a decimal for currency display.
+type Money struct {
+        Amount decimal.Decimal
+}
+
+// DisplayCurrency formats a decimal amount with a currency symbol.
+//
+// Precondition: amount is any valid decimal.Decimal (including zero).
+// Postcondition: the result has exactly two decimal places.
+// Invariant: for any two currencies c1, c2,
+//   numericPart(DisplayCurrency(amount, c1)) == numericPart(DisplayCurrency(amount, c2))
+//
+// If currency is "", "Ksh" is used as the default.
+
+func DisplayCurrency(amount decimal.Decimal, currency string) string <span class="cov0" title="0">{
+        if currency == "" </span><span class="cov0" title="0">{
+                currency = "Ksh" // default for your market
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("%s%s", currency, amount.StringFixed(2))</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// domain/receipt.go
+package domain
+
+import (
+        "errors"
+        "time"
+
+        "github.com/shopspring/decimal"
+)
+
+type ReceiptItem struct {
+        Name      string
+        Qty       int
+        UnitPrice decimal.Decimal
+}
+
+type Receipt struct {
+        ID            string `json:"id"`
+        TransactionID string `json:"transaction_id"`
+        StoreName     string
+        StoreAddr     string
+        StorePhone    string
+        StoreTaxID    string
+        HasVAT        bool
+        Currency      string
+        Items         []ReceiptItem
+        TaxRate       decimal.Decimal
+        Payment       Payment
+        Status        PaymentStatus `json:"status"`
+        CreatedAt     time.Time     `json:"created_at"`
+        UpdatedAt     time.Time     `json:"updated_at"`
+}
+
+func NewReceipt() *Receipt <span class="cov8" title="1">{
+        now := time.Now().UTC()
+        return &amp;Receipt{
+                Status:    StatusPending,
+                TaxRate:   decimal.Zero,
+                CreatedAt: now,
+                UpdatedAt: now,
+        }
+}</span>
+
+// ==================== PAYMENT STATUS (v1 Feature) ====================
+
+type PaymentStatus string
+
+const (
+        StatusPending   PaymentStatus = "PENDING"
+        StatusPaid      PaymentStatus = "PAID"
+        StatusFailed    PaymentStatus = "FAILED"
+        StatusCancelled PaymentStatus = "CANCELLED"
+        StatusRefunded  PaymentStatus = "REFUNDED"
+)
+
+func ValidPaymentStatusTransition(from, to PaymentStatus) bool <span class="cov0" title="0">{
+        switch from </span>{
+        case StatusPending:<span class="cov0" title="0">
+                return to == StatusPaid || to == StatusFailed || to == StatusCancelled</span>
+        case StatusPaid:<span class="cov0" title="0">
+                return to == StatusRefunded</span>
+        default:<span class="cov0" title="0">
+                return false</span>
+        }
+}
+
+func ValidateStatusTransition(from, to PaymentStatus) error <span class="cov0" title="0">{
+        if from == to </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">if ValidPaymentStatusTransition(from, to) </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">return errors.New("invalid payment status transition: " + string(from) + " → " + string(to))</span>
+}
+
+func (r *Receipt) ChangeStatus(newStatus PaymentStatus, reason string) error <span class="cov0" title="0">{
+        if err := ValidateStatusTransition(r.Status, newStatus); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">r.Status = newStatus
+        r.UpdatedAt = time.Now().UTC()
+        return nil</span>
+}
+
+// ==================== PAYMENT STATE ====================
+
+type PaymentState string
+
+const (
+        PaymentPending  PaymentState = "PENDING"
+        PaymentPartial  PaymentState = "PARTIAL"
+        PaymentPaid     PaymentState = "PAID"
+        PaymentOverpaid PaymentState = "OVERPAID"
+)
+
+// PaymentState returns the current payment status.
+// For simplicity, Cash is always Paid; other methods are Pending until confirmed.
+func (r *Receipt) PaymentState() PaymentStatus <span class="cov0" title="0">{
+        if r.Payment.Status == "" </span><span class="cov0" title="0">{
+                return StatusPending
+        }</span>
+        <span class="cov0" title="0">return r.Payment.Status</span>
+}
+
+func (r *Receipt) AmountState() PaymentState <span class="cov8" title="1">{
+        total := r.Total()
+        paid := r.Payment.Amount
+
+        if total.IsNegative() </span><span class="cov0" title="0">{
+                return PaymentPending
+        }</span>
+
+        <span class="cov8" title="1">switch </span>{
+        case paid.IsZero():<span class="cov8" title="1">
+                return PaymentPending</span>
+        case paid.GreaterThan(total):<span class="cov8" title="1">
+                return PaymentOverpaid</span>
+        case paid.Equal(total):<span class="cov8" title="1">
+                return PaymentPaid</span>
+        case paid.LessThan(total) &amp;&amp; paid.GreaterThan(decimal.Zero):<span class="cov8" title="1">
+                return PaymentPartial</span>
+        default:<span class="cov0" title="0">
+                return PaymentPending</span>
+        }
+}
+
+func (r *Receipt) IsFullyPaid() bool <span class="cov0" title="0">{
+        state := r.AmountState()
+        return state == PaymentPaid || state == PaymentOverpaid
+}</span>
+
+func (r *Receipt) IsPending() bool <span class="cov0" title="0">{
+        return r.AmountState() == PaymentPending
+}</span>
+
+func (r *Receipt) IsPartiallyPaid() bool <span class="cov0" title="0">{
+        return r.AmountState() == PaymentPartial
+}</span>
+
+func (r *Receipt) Subtotal() decimal.Decimal <span class="cov8" title="1">{
+        sum := decimal.Zero
+        for _, item := range r.Items </span><span class="cov8" title="1">{
+                sum = sum.Add(item.LineTotal())
+        }</span>
+        <span class="cov8" title="1">return sum</span>
+}
+
+func (r *Receipt) Tax() decimal.Decimal <span class="cov8" title="1">{
+        return r.Subtotal().Mul(r.TaxRate)
+}</span>
+
+func (r *Receipt) Total() decimal.Decimal <span class="cov8" title="1">{
+        return r.Subtotal().Add(r.Tax())
+}</span>
+
+func (r *Receipt) Change() decimal.Decimal <span class="cov0" title="0">{
+        return r.Payment.Amount.Sub(r.Total())
+}</span>
+
+func (r *Receipt) TaxRatePct() string <span class="cov0" title="0">{
+        return r.TaxRate.Mul(decimal.NewFromInt(100)).StringFixed(2)
+}</span>
+
+func (item *ReceiptItem) LineTotal() decimal.Decimal <span class="cov8" title="1">{
+        return item.UnitPrice.Mul(decimal.NewFromInt(int64(item.Qty)))
+}</span>
+
+type Payment struct {
+        Method string
+        Amount decimal.Decimal
+        Status PaymentStatus
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package handler
+
+import (
+        "fmt"
+        "net/http"
+
+        "github.com/Sylvester-Kapoko/Receipts/service"
+)
+
+type Handler struct {
+        service *service.UserService
+}
+
+func NewHandler(s *service.UserService) *Handler <span class="cov0" title="0">{
+        return &amp;Handler{service: s}
+}</span>
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        user := h.service.GetUser(1)
+        fmt.Fprintln(w, user)
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package server
+
+import (
+        "crypto/rand"
+        "encoding/hex"
+        "fmt"
+        "html/template"
+        "net/http"
+        "strconv"
+        "strings"
+        "time"
+  "log"
+        "github.com/Sylvester-Kapoko/risitPap/domain"
+        "github.com/Sylvester-Kapoko/risitPap/internal/store"
+        "github.com/Sylvester-Kapoko/risitPap/printer"
+        "github.com/shopspring/decimal"
+)
+
+// eatLocation is East Africa Time (UTC+3).
+var eatLocation = time.FixedZone("EAT", 3*60*60)
+
+// nowInEAT returns the current time in EAT.
+func nowInEAT() time.Time <span class="cov8" title="1">{
+        return time.Now().In(eatLocation)
+}</span>
+
+func HandleIndex(formatter *printer.HtmlFormatter, st store.ReceiptStore) http.HandlerFunc <span class="cov0" title="0">{
+        tmpl := template.Must(template.New("index").Parse(indexHTML))
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                if !st.ValidLicense() &amp;&amp; st.TrialDaysLeft() &lt;= 0 </span><span class="cov0" title="0">{
+                      _, _ =        w.Write([]byte(`&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;Trial Expired&lt;/title&gt;
+            &lt;style&gt;body{font-family:system-ui,sans-serif;max-width:500px;margin:auto;padding:20px;text-align:center;}
+            a{color:#007bff;}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;
+            &lt;h1&gt;⏰ Trial Expired&lt;/h1&gt;
+            &lt;p&gt;Your 30-day trial has ended.&lt;/p&gt;
+            &lt;p&gt;Your receipts are still available.&lt;/p&gt;
+            &lt;p&gt;&lt;a href="/history"&gt;📋 View Receipt History&lt;/a&gt;&lt;/p&gt;
+            &lt;p&gt;Purchase a license key to resume printing new receipts.&lt;/p&gt;
+            &lt;p&gt;&lt;a href="https://wa.me/254768592677" style="font-size:1.2em;font-weight:bold;"&gt;🛒 Buy Now (Ksh 2000)&lt;/a&gt;&lt;/p&gt;
+            &lt;/body&gt;&lt;/html&gt;`))
+                        return
+                }</span>
+                <span class="cov0" title="0">cfg, _ := st.LoadConfig()
+                if cfg == nil </span><span class="cov0" title="0">{
+                        cfg = &amp;domain.StoreConfig{}
+                }</span>
+                <span class="cov0" title="0">_ = tmpl.Execute(w, cfg)</span>
+        }
+}
+
+func HandlePrint(formatter printer.ReceiptFormatter, st store.ReceiptStore) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                if r.Method != http.MethodPost </span><span class="cov0" title="0">{
+                        http.Redirect(w, r, "/", http.StatusSeeOther)
+                        return
+                }</span>
+                <span class="cov8" title="1">if !st.ValidLicense() &amp;&amp; st.TrialDaysLeft() &lt;= 0 </span><span class="cov0" title="0">{
+                        http.Redirect(w, r, "/", http.StatusSeeOther)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">receipt := parseForm(r)
+                receipt.TransactionID = generateTransactionID()
+                receipt.CreatedAt = resolveReceiptDate(r.FormValue("receiptDate"))
+
+                if cfg, err := st.LoadConfig(); err == nil &amp;&amp; cfg != nil </span><span class="cov8" title="1">{
+                        receipt.StorePhone = cfg.StorePhone
+                        receipt.StoreTaxID = cfg.StoreTaxID
+                        receipt.Currency = cfg.Currency
+                        receipt.HasVAT = cfg.VATRegistered
+                        if !cfg.VATRegistered </span><span class="cov8" title="1">{
+                                receipt.TaxRate = decimal.Zero
+                        }</span>
+                }
+                <span class="cov8" title="1">if receipt.Currency == "" </span><span class="cov0" title="0">{
+                        receipt.Currency = "Ksh"
+                }</span>
+
+                <span class="cov8" title="1">if err := st.Save(receipt); err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, "Failed to save receipt", http.StatusInternalServerError)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">formatted, err := formatter.Format(receipt)
+                if err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, "Failed to format receipt", http.StatusInternalServerError)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                _,_ = w.Write([]byte(formatted))</span>
+        }
+}
+
+// resolveReceiptDate parses a YYYY-MM-DD date string into EAT time,
+// preserving the current EAT clock time. Falls back to now if blank or invalid.
+func resolveReceiptDate(dateStr string) time.Time <span class="cov8" title="1">{
+        dateStr = strings.TrimSpace(dateStr)
+        if dateStr == "" </span><span class="cov8" title="1">{
+                return nowInEAT()
+        }</span>
+        <span class="cov8" title="1">parsed, err := time.ParseInLocation("2006-01-02", dateStr, eatLocation)
+        if err != nil </span><span class="cov0" title="0">{
+                return nowInEAT()
+        }</span>
+        <span class="cov8" title="1">now := nowInEAT()
+        return time.Date(
+                parsed.Year(), parsed.Month(), parsed.Day(),
+                now.Hour(), now.Minute(), now.Second(), now.Nanosecond(),
+                eatLocation,
+        )</span>
+}
+
+func HandleRegisterForm(st store.ReceiptStore) http.HandlerFunc <span class="cov0" title="0">{
+        tmpl := template.Must(template.New("register").Parse(registerHTML))
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                cfg, _ := st.LoadConfig()
+                if cfg == nil </span><span class="cov0" title="0">{
+                        cfg = &amp;domain.StoreConfig{}
+                }</span>
+                <span class="cov0" title="0">_ = tmpl.Execute(w, cfg)</span>
+        }
+}
+
+func HandleRegisterSave(st store.ReceiptStore) http.HandlerFunc <span class="cov0" title="0">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                if err := r.ParseForm(); err != nil </span><span class="cov0" title="0">{
+       log.Printf("ParseForm error: %v", err)
+    }</span>
+                <span class="cov0" title="0">vatRegistered := r.FormValue("vatRegistered") == "true"
+                cfg := &amp;domain.StoreConfig{
+                        StoreName:     r.FormValue("storeName"),
+                        StoreAddr:     r.FormValue("storeAddr"),
+                        StorePhone:    r.FormValue("storePhone"),
+                        StoreTaxID:    r.FormValue("storeTaxID"),
+                        VATRegistered: vatRegistered,
+                        Currency:      r.FormValue("currency"),
+                        TemplateId:    r.FormValue("templateId"),
+                        LogoPath:      r.FormValue("logoPath"),
+                }
+                if err := st.SaveConfig(cfg); err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, "Failed to save settings", http.StatusInternalServerError)
+                        return
+                }</span>
+                <span class="cov0" title="0">http.Redirect(w, r, "/", http.StatusSeeOther)</span>
+        }
+}
+
+func generateTransactionID() string <span class="cov8" title="1">{
+        b := make([]byte, 3)
+        if _, err := rand.Read(b); err != nil </span><span class="cov0" title="0">{
+    log.Printf("rand.Read failed: %v", err)
+  }</span>
+        <span class="cov8" title="1">return fmt.Sprintf("INV-%s-%s", nowInEAT().Format("20060102"), hex.EncodeToString(b))</span>
+}
+
+func parseForm(r *http.Request) *domain.Receipt <span class="cov8" title="1">{
+        if err := r.ParseForm(); err != nil </span><span class="cov0" title="0">{
+    // log or ignore
+    log.Printf("parseform error: %v", err)
+  }</span>
+        <span class="cov8" title="1">taxRate, _ := decimal.NewFromString(r.FormValue("taxRate"))
+        payAmt, _ := decimal.NewFromString(r.FormValue("paymentAmount"))
+        var items []domain.ReceiptItem
+        for _, part := range strings.Split(r.FormValue("items"), ";") </span><span class="cov8" title="1">{
+                if part == "" </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">fields := strings.Split(part, ",")
+                if len(fields) &lt; 3 </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">qty, _ := strconv.Atoi(strings.TrimSpace(fields[1]))
+                price, _ := decimal.NewFromString(strings.TrimSpace(fields[2]))
+                items = append(items, domain.ReceiptItem{
+                        Name:      strings.TrimSpace(fields[0]),
+                        Qty:       qty,
+                        UnitPrice: price,
+                })</span>
+        }
+        <span class="cov8" title="1">return &amp;domain.Receipt{
+                StoreName: r.FormValue("storeName"),
+                StoreAddr: r.FormValue("storeAddr"),
+                TaxRate:   taxRate,
+                Items:     items,
+                Payment: domain.Payment{
+                        Method: r.FormValue("paymentMethod"),
+                        Amount: payAmt,
+                },
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package server
+
+import (
+        "html/template"
+        "net/http"
+        "time"
+
+        "github.com/Sylvester-Kapoko/risitPap/domain"
+        "github.com/Sylvester-Kapoko/risitPap/internal/store"
+        "github.com/Sylvester-Kapoko/risitPap/printer"
+)
+
+const historyHTML = `&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;Receipt History&lt;/title&gt;
+&lt;style&gt;body{font-family:monospace;max-width:700px;margin:auto;padding:20px;}
+table{width:100%;border-collapse:collapse;}td,th{padding:5px;text-align:left;}
+a{color:blue;}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;
+&lt;h1&gt;Receipt History&lt;/h1&gt;&lt;a href="/"&gt;New Receipt&lt;/a&gt;
+&lt;table&gt;&lt;tr&gt;&lt;th&gt;ID&lt;/th&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Store&lt;/th&gt;&lt;th&gt;Total&lt;/th&gt;&lt;th&gt;View&lt;/th&gt;&lt;/tr&gt;
+{{range .}}&lt;tr&gt;&lt;td&gt;{{.TransactionID}}&lt;/td&gt;&lt;td&gt;{{.CreatedAt.Format "2006-01-02 15:04"}}&lt;/td&gt;
+&lt;td&gt;{{.StoreName}}&lt;/td&gt;&lt;td&gt;{{.Total}}&lt;/td&gt;
+&lt;td&gt;&lt;a href="/view?id={{.TransactionID}}"&gt;View&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;{{end}}&lt;/table&gt;
+&lt;/body&gt;&lt;/html&gt;`
+
+func HandleHistory(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc <span class="cov0" title="0">{
+        tmpl := template.Must(template.New("history").Parse(historyHTML))
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                receipts, _ := st.List(time.Time{})
+                type row struct {
+                        TransactionID, StoreName, Total string
+                        CreatedAt                       time.Time
+                }
+                rows := []row{}
+                for _, rec := range receipts </span><span class="cov0" title="0">{
+                        currency := rec.Currency
+                        if currency == "" </span><span class="cov0" title="0">{
+                                currency = "Ksh"
+                        }</span>
+                        <span class="cov0" title="0">rows = append(rows, row{rec.TransactionID, rec.StoreName,
+                                domain.DisplayCurrency(rec.Total(), currency), rec.CreatedAt})</span>
+                }
+                <span class="cov0" title="0">_ = tmpl.Execute(w, rows)</span>
+        }
+}
+
+func HandleView(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc <span class="cov0" title="0">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                id := r.URL.Query().Get("id")
+                receipt, err := st.Get(id)
+                if err != nil </span><span class="cov0" title="0">{
+                        http.NotFound(w, r)
+                        return
+                }</span>
+                <span class="cov0" title="0">formatted, err := formatter.Format(receipt)
+                if err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, "Failed to format receipt", http.StatusInternalServerError)
+                        return
+                }</span>
+                <span class="cov0" title="0">w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                _, _ = w.Write([]byte(formatted))</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package server
+
+import (
+        "encoding/json"
+        "net/http"
+  "log"
+        "github.com/Sylvester-Kapoko/risitPap/internal/store"
+)
+
+func HandleSuggest(st *store.Store) http.HandlerFunc <span class="cov0" title="0">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                q := r.URL.Query().Get("q")
+                if len(q) &lt; 2 </span><span class="cov0" title="0">{
+                        _,_ = w.Write([]byte("[]"))
+                        return
+                }</span>
+                <span class="cov0" title="0">rows, err := st.SuggestItems(q)
+                if err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, "internal error", 500)
+                        return
+                }</span>
+                <span class="cov0" title="0">w.Header().Set("Content-Type", "application/json")
+                if err := json.NewEncoder(w).Encode(rows); err != nil </span><span class="cov0" title="0">{
+         log.Printf("suggest encode: %v", err)
+    }</span>
+  }
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package store
+
+import (
+    "encoding/json"
+    "github.com/Sylvester-Kapoko/risitPap/domain"
+)
+
+func (s *Store) SaveConfig(cfg *domain.StoreConfig) error <span class="cov0" title="0">{
+    data, err := json.Marshal(cfg)
+    if err != nil </span><span class="cov0" title="0">{
+        return err
+    }</span>
+    <span class="cov0" title="0">_, err = s.db.Exec("INSERT OR REPLACE INTO config (id, data) VALUES (1, ?)", string(data))
+    return err</span>
+}
+
+func (s *Store) LoadConfig() (*domain.StoreConfig, error) <span class="cov0" title="0">{
+    var data string
+    err := s.db.QueryRow("SELECT data FROM config WHERE id = 1").Scan(&amp;data)
+    if err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+    <span class="cov0" title="0">var cfg domain.StoreConfig
+    if err := json.Unmarshal([]byte(data), &amp;cfg); err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+    <span class="cov0" title="0">return &amp;cfg, nil</span>
+}</pre>
+		
+		<pre class="file" id="file10" style="display: none">package store
+
+import (
+    "database/sql"
+    "encoding/json"
+    "fmt"
+    "time"
+
+    "github.com/Sylvester-Kapoko/risitPap/domain"
+    _ "modernc.org/sqlite"
+)
+
+type Store struct{ db *sql.DB }
+
+func Open(path string) (*Store, error) <span class="cov0" title="0">{
+    db, err := sql.Open("sqlite", path)
+    if err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+
+    <span class="cov0" title="0">if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS receipts (
+        id TEXT PRIMARY KEY,
+        data TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )`); err != nil </span><span class="cov0" title="0">{
+        return nil, fmt.Errorf("create receipts table: %w", err)
+    }</span>
+
+    <span class="cov0" title="0">if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS config (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        data TEXT NOT NULL
+    )`); err != nil </span><span class="cov0" title="0">{
+        return nil, fmt.Errorf("create config table: %w", err)
+    }</span>
+
+    <span class="cov0" title="0">if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS items (
+        name TEXT PRIMARY KEY,
+        last_price TEXT NOT NULL
+    )`); err != nil </span><span class="cov0" title="0">{
+        return nil, fmt.Errorf("create items table: %w", err)
+    }</span>
+
+    <span class="cov0" title="0">return &amp;Store{db: db}, nil</span>
+}
+
+func (s *Store) Save(r *domain.Receipt) error <span class="cov0" title="0">{
+    r.CreatedAt = time.Now()
+    data, err := json.Marshal(r)
+    if err != nil </span><span class="cov0" title="0">{
+        return err
+    }</span>
+    <span class="cov0" title="0">_, err = s.db.Exec("INSERT INTO receipts (id, data, created_at) VALUES (?, ?, ?)",
+        r.TransactionID, string(data), r.CreatedAt.Format(time.RFC3339))
+    if err != nil </span><span class="cov0" title="0">{
+        return err
+    }</span>
+
+    <span class="cov0" title="0">for _, item := range r.Items </span><span class="cov0" title="0">{
+        _, err = s.db.Exec("INSERT OR REPLACE INTO items (name, last_price) VALUES (?, ?)",
+            item.Name, item.UnitPrice.String())
+        if err != nil </span><span class="cov0" title="0">{
+            return err
+        }</span>
+    }
+    <span class="cov0" title="0">return nil</span>
+}
+
+func (s *Store) List(since time.Time) ([]domain.Receipt, error) <span class="cov0" title="0">{
+    rows, err := s.db.Query("SELECT data FROM receipts ORDER BY created_at DESC LIMIT 50")
+    if err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+    <span class="cov0" title="0">defer rows.Close()
+    var receipts []domain.Receipt
+    for rows.Next() </span><span class="cov0" title="0">{
+        var data string
+        if err := rows.Scan(&amp;data); err != nil </span><span class="cov0" title="0">{
+            continue</span>
+        }
+        <span class="cov0" title="0">var r domain.Receipt
+        if err := json.Unmarshal([]byte(data), &amp;r); err != nil </span><span class="cov0" title="0">{
+            continue</span>
+        }
+        <span class="cov0" title="0">receipts = append(receipts, r)</span>
+    }
+    <span class="cov0" title="0">return receipts, rows.Err()</span>
+}
+
+func (s *Store) Get(id string) (*domain.Receipt, error) <span class="cov0" title="0">{
+    var data string
+    err := s.db.QueryRow("SELECT data FROM receipts WHERE id = ?", id).Scan(&amp;data)
+    if err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+    <span class="cov0" title="0">var r domain.Receipt
+    if err := json.Unmarshal([]byte(data), &amp;r); err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+    <span class="cov0" title="0">return &amp;r, nil</span>
+}
+
+func (s *Store) SuggestItems(prefix string) ([]map[string]string, error) <span class="cov0" title="0">{
+    rows, err := s.db.Query("SELECT name, last_price FROM items WHERE name LIKE ? LIMIT 5", prefix+"%")
+    if err != nil </span><span class="cov0" title="0">{
+        return nil, err
+    }</span>
+    <span class="cov0" title="0">defer rows.Close()
+    var results []map[string]string
+    for rows.Next() </span><span class="cov0" title="0">{
+        var name, price string
+        if err := rows.Scan(&amp;name, &amp;price); err != nil </span><span class="cov0" title="0">{
+            return nil, err
+        }</span>
+        <span class="cov0" title="0">results = append(results, map[string]string{"name": name, "price": price})</span>
+    }
+    <span class="cov0" title="0">return results, rows.Err()</span>
+}</pre>
+		
+		<pre class="file" id="file11" style="display: none">package store
+
+import (
+        "crypto/hmac"
+        "crypto/sha256"
+        "encoding/hex"
+        "os"
+        "path/filepath"
+        "strings"
+        "time"
+)
+
+const secret = "mK9vN2xP5rF8jL3wH6tY1qA4cG7uE0bD5sM8pR2vJ9nK6wT3yF1aC4hU7oX0zL5"
+const trialFile = "trial.start"
+
+func ValidLicense() bool <span class="cov0" title="0">{
+        exePath, _ := os.Executable() // added line 19,20,21
+        exeDir := filepath.Dir(exePath)
+        data, err := os.ReadFile(filepath.Join(exeDir, "license.key"))
+        if err != nil </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov0" title="0">key := strings.TrimSpace(string(data))
+        return validate(key)</span>
+}
+
+func validate(key string) bool <span class="cov0" title="0">{
+        parts := strings.SplitN(key, "-", 2)
+        if len(parts) != 2 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov0" title="0">email, signature := parts[0], parts[1]
+        mac := hmac.New(sha256.New, []byte(secret))
+        mac.Write([]byte(strings.ToLower(strings.TrimSpace(email))))
+        expected := hex.EncodeToString(mac.Sum(nil))[:16]
+        return signature == expected</span>
+}
+
+// TrialDaysLeft returns remaining trial days. Negative means expired.
+// Returns 30 on first run, decreasing each day
+
+func TrialDaysLeft() int <span class="cov0" title="0">{
+        exePath, _ := os.Executable()
+        exeDir := filepath.Dir(exePath)
+        trialPath := filepath.Join(exeDir, trialFile)
+        data, err := os.ReadFile(trialPath) //data, err := os.ReadFile(trialFile) -- changed from this to the uncommented one
+        if err != nil </span><span class="cov0" title="0">{
+                // First run - write today's date
+                now := time.Now().Format(time.RFC3339)
+                _ = os.WriteFile(trialFile, []byte(now), 0644)
+                return 30
+
+        }</span>
+        <span class="cov0" title="0">start, err := time.Parse(time.RFC3339, strings.TrimSpace(string(data)))
+        if err != nil </span><span class="cov0" title="0">{
+                // Corrupted - reset
+                now := time.Now().Format(time.RFC3339)
+                _ = os.WriteFile(trialFile, []byte(now), 0644)
+                return 30
+        }</span>
+
+        <span class="cov0" title="0">elapsed := time.Since(start)
+        remaining := 30 - int(elapsed.Hours()/24)
+        return remaining</span>
+
+}
+
+// ValidLicense satisfies the ReceiptStore interface.
+func (s *Store) ValidLicense() bool <span class="cov0" title="0">{
+        return ValidLicense()
+}</span>
+
+// TrialDaysLeft satisfies the ReceiptStore interface.
+func (s *Store) TrialDaysLeft() int <span class="cov0" title="0">{
+        return TrialDaysLeft()
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package printer
+
+import (
+        "bytes"
+        "embed"
+        "html/template"
+        "path"
+        "strings"
+
+        "github.com/Sylvester-Kapoko/risitPap/domain" // corrected import
+)
+
+//go:embed templates/*
+var templateFS embed.FS
+
+func parseTemplate(filename string) *template.Template <span class="cov0" title="0">{
+        return template.Must(template.New(path.Base(filename)).ParseFS(templateFS, "templates/"+filename))
+}</span>
+
+type HtmlConfig struct {
+        DeveloperName  string
+        DeveloperPhone string
+        ShowFooter     bool
+}
+
+type HtmlFormatter struct {
+        fullTmpl     *template.Template
+        fragmentTmpl *template.Template
+        statusTmpl   *template.Template
+        config       HtmlConfig
+}
+
+func NewHtmlFormatter(cfg HtmlConfig) *HtmlFormatter <span class="cov0" title="0">{
+        return &amp;HtmlFormatter{
+                fullTmpl:     parseTemplate("receipt.html"),
+                fragmentTmpl: parseTemplate("receipt_fragment.html"),
+                statusTmpl:   parseTemplate("status_fragment.html"),
+                config:       cfg,
+        }
+}</span>
+
+func nonEmpty(s string) bool <span class="cov0" title="0">{
+        return strings.TrimSpace(s) != ""
+}</span>
+
+// --------------------------------------------------------------------
+//  View types
+// --------------------------------------------------------------------
+
+type statusView struct {
+        PaymentMethod string
+        PaymentAmount string
+        Change        string
+        Total         string
+        State         domain.PaymentStatus // using domain type (which is a string)
+}
+
+type receiptView struct {
+        ID            string
+        StoreName     string
+        StoreAddr     string
+        StorePhone    string
+        StoreTaxID    string
+        TransactionID string
+        Currency      string
+
+        Items []itemView
+
+        Subtotal string
+        TaxRate  string
+        Tax      string
+        Total    string
+
+        PaymentMethod string
+        PaymentAmount string
+        Change        string
+
+        CreatedAt string
+
+        ShowPhone bool
+        ShowTaxID bool
+
+        Footer footerView
+}
+
+type itemView struct {
+        Name      string
+        Qty       int
+        UnitPrice string
+        LineTotal string
+}
+
+type footerView struct {
+        Show           bool
+        DeveloperName  string
+        DeveloperPhone string
+        CreatedAt      string
+}
+
+// --------------------------------------------------------------------
+//  Format methods
+// --------------------------------------------------------------------
+
+func (f *HtmlFormatter) Format(r *domain.Receipt) (string, error) <span class="cov0" title="0">{
+        items := make([]itemView, 0, len(r.Items))
+        for _, it := range r.Items </span><span class="cov0" title="0">{
+                items = append(items, itemView{
+                        Name:      it.Name,
+                        Qty:       it.Qty,
+                        UnitPrice: domain.DisplayCurrency(it.UnitPrice, r.Currency),
+                        LineTotal: domain.DisplayCurrency(it.LineTotal(), r.Currency),
+                })
+        }</span>
+
+        <span class="cov0" title="0">view := receiptView{
+                ID:            r.ID,
+                StoreName:     r.StoreName,
+                StoreAddr:     r.StoreAddr,
+                StorePhone:    r.StorePhone,
+                StoreTaxID:    r.StoreTaxID,
+                TransactionID: r.TransactionID,
+                Currency:      r.Currency,
+                Items:         items,
+
+                Subtotal: domain.DisplayCurrency(r.Subtotal(), r.Currency),
+                TaxRate:  r.TaxRatePct(),
+                Tax:      domain.DisplayCurrency(r.Tax(), r.Currency),
+                Total:    domain.DisplayCurrency(r.Total(), r.Currency),
+
+                PaymentMethod: r.Payment.Method,
+                PaymentAmount: domain.DisplayCurrency(r.Payment.Amount, r.Currency),
+                Change:        domain.DisplayCurrency(r.Change(), r.Currency),
+
+                CreatedAt: r.CreatedAt.Format("2006-01-02 15:04"),
+
+                ShowPhone: nonEmpty(r.StorePhone),
+                ShowTaxID: nonEmpty(r.StoreTaxID),
+
+                Footer: footerView{
+                        Show:           f.config.ShowFooter,
+                        DeveloperName:  f.config.DeveloperName,
+                        DeveloperPhone: f.config.DeveloperPhone,
+                        CreatedAt:      r.CreatedAt.Format("2006-01-02 15:04"),
+                },
+        }
+
+        var buf bytes.Buffer
+        err := f.fullTmpl.Execute(&amp;buf, view)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return buf.String(), nil</span>
+}
+
+func (f *HtmlFormatter) RenderFragment(r *domain.Receipt) (string, error) <span class="cov0" title="0">{
+        // For v1 we just call Format – you can later make a lighter fragment template.
+        return f.Format(r)
+}</span>
+
+func (f *HtmlFormatter) RenderStatusFragment(r *domain.Receipt) (string, error) <span class="cov0" title="0">{
+        var buf bytes.Buffer
+
+        view := statusView{
+                PaymentMethod: r.Payment.Method,
+                PaymentAmount: domain.DisplayCurrency(r.Payment.Amount, r.Currency),
+                Change:        domain.DisplayCurrency(r.Change(), r.Currency),
+                Total:         domain.DisplayCurrency(r.Total(), r.Currency),
+                State:         r.PaymentState(), // returns domain.PaymentStatus
+        }
+
+        if err := f.statusTmpl.Execute(&amp;buf, view); err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">return buf.String(), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package printer
+
+import (
+        "fmt"
+        "strings"
+)
+
+func center(b *strings.Builder, text string, width int) <span class="cov8" title="1">{
+        if len(text) &gt;= width </span><span class="cov8" title="1">{
+                b.WriteString(text[:width])
+                b.WriteByte('\n')
+                return
+        }</span>
+        <span class="cov8" title="1">padding := width - len(text)
+        left := padding / 2
+        b.WriteString(strings.Repeat(" ", left))
+        b.WriteString(text)
+        b.WriteByte('\n')</span>
+}
+
+func separator(b *strings.Builder, width int) <span class="cov8" title="1">{
+        b.WriteString(strings.Repeat("-", width))
+        b.WriteByte('\n')
+}</span>
+
+func itemLine(b *strings.Builder, name, qty, unit, total string, width int) <span class="cov8" title="1">{
+        nameWidth := width - 18
+        if len(name) &gt; nameWidth </span><span class="cov0" title="0">{
+                name = name[:nameWidth-1] + "."
+        }</span>
+        <span class="cov8" title="1">fmt.Fprintf(b, "%-*s %3s %6s %6s\n", nameWidth, name, qty, unit, total)</span>
+}
+
+func moneyLine(b *strings.Builder, label, amount string, width int) <span class="cov8" title="1">{
+        spaces := width - len(label) - len(amount)
+        if spaces &lt; 1 </span><span class="cov0" title="0">{
+                spaces = 1
+        }</span>
+        <span class="cov8" title="1">b.WriteString(label)
+        b.WriteString(strings.Repeat(" ", spaces))
+        b.WriteString(amount)
+        b.WriteByte('\n')</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package printer
+
+import (
+        "fmt"
+        "strings"
+
+        "github.com/Sylvester-Kapoko/risitPap/domain"
+)
+
+type PlainTextFormatter struct {
+        width int
+}
+
+func NewPlainTextFormatter(width int) *PlainTextFormatter <span class="cov8" title="1">{
+        if width &lt; 20 </span><span class="cov0" title="0">{
+                width = 32
+        }</span>
+        <span class="cov8" title="1">return &amp;PlainTextFormatter{width: width}</span>
+}
+
+func (f *PlainTextFormatter) Format(r *domain.Receipt) (string, error) <span class="cov8" title="1">{
+        var b strings.Builder
+
+        center(&amp;b, r.StoreName, f.width)
+        center(&amp;b, r.StoreAddr, f.width)
+        center(&amp;b, fmt.Sprintf("Transaction: %s", r.TransactionID), f.width)
+        b.WriteString("\n")
+
+        for _, item := range r.Items </span><span class="cov8" title="1">{
+                itemLine(&amp;b, item.Name, fmt.Sprintf("%d", item.Qty),
+                        domain.DisplayCurrency(item.UnitPrice, r.Currency), domain.DisplayCurrency(item.LineTotal(), r.Currency), f.width)
+        }</span>
+
+        <span class="cov8" title="1">separator(&amp;b, f.width)
+        moneyLine(&amp;b, "Subtotal", domain.DisplayCurrency(r.Subtotal(), r.Currency), f.width)
+        if r.HasVAT </span><span class="cov8" title="1">{
+                moneyLine(&amp;b, fmt.Sprintf("Tax (%s%%)", r.TaxRatePct()), domain.DisplayCurrency(r.Tax(), r.Currency), f.width)
+        }</span>
+        <span class="cov8" title="1">moneyLine(&amp;b, "TOTAL", domain.DisplayCurrency(r.Total(), r.Currency), f.width)
+        b.WriteString("\n")
+        moneyLine(&amp;b, r.Payment.Method, domain.DisplayCurrency(r.Payment.Amount, r.Currency), f.width)
+        moneyLine(&amp;b, "Change", domain.DisplayCurrency(r.Change(), r.Currency), f.width)
+
+        b.WriteString("\n")
+        center(&amp;b, "Thank you!", f.width)
+        center(&amp;b, r.CreatedAt.Format("2006-01-02 15:04"), f.width)
+
+        return b.String(), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package printer
+
+import (
+        "io"
+
+        "github.com/Sylvester-Kapoko/risitPap/domain"
+)
+
+// ReceiptPrinter sends a formatted receipt to a writer.
+type ReceiptPrinter struct {
+        formatter ReceiptFormatter
+        writer    io.Writer
+}
+
+// NewReceiptPrinter creates a printer with the given formatter and output destination.
+func NewReceiptPrinter(f ReceiptFormatter, w io.Writer) *ReceiptPrinter <span class="cov0" title="0">{
+        return &amp;ReceiptPrinter{formatter: f, writer: w}
+}</span>
+
+// Print formats the receipt and writes it to the output.
+func (p *ReceiptPrinter) Print(receipt *domain.Receipt) error <span class="cov0" title="0">{
+        output, err := p.formatter.Format(receipt)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">_, err = io.WriteString(p.writer, output)
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package repository
+
+import (
+        "fmt"
+
+        _ "github.com/glebarez/go-sqlite"
+)
+
+type UserRepository struct {
+        // Imagine this struct holds a database client
+}
+
+func NewUserRepository() *UserRepository <span class="cov0" title="0">{
+        return &amp;UserRepository{}
+}</span>
+
+func (r *UserRepository) FindUser(id int) string <span class="cov0" title="0">{
+        // In a real app, this would query the database
+        return fmt.Sprintf("user-%d", id)
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package service
+
+import (
+        "github.com/Sylvester-Kapoko/risitPap/repository"
+)
+
+type UserService struct {
+        repo *repository.UserRepository
+}
+
+func NewUserService(r *repository.UserRepository) *UserService <span class="cov0" title="0">{
+        return &amp;UserService{repo: r}
+}</span>
+
+func (s *UserService) GetUser(id int) string <span class="cov0" title="0">{
+        // Add some business logic here
+        return s.repo.FindUser(id)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

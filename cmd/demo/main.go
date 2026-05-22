@@ -1,12 +1,12 @@
 package main
 
 import (
-	
-                 "os"
+	"os"
 	"time"
-	"github.com/shopspring/decimal"
+
 	"github.com/Sylvester-Kapoko/risitPap/domain"
 	"github.com/Sylvester-Kapoko/risitPap/printer"
+	"github.com/shopspring/decimal"
 )
 
 func main() {
@@ -18,26 +18,17 @@ func main() {
 			{Name: "Fries", Qty: 1, UnitPrice: decimal.RequireFromString("5.00")},
 		},
 		TaxRate: decimal.RequireFromString("0.10"),
-		Payment: struct {
-			Method string
-			Amount decimal.Decimal
-		}{
+		Payment: domain.Payment{
 			Method: "Cash",
 			Amount: decimal.RequireFromString("40.00"),
 		},
 		CreatedAt: time.Now(),
 	}
 
-	formatter := printer.NewPlainTextFormatter(32)   // if needed change back to 32
+	formatter := printer.NewPlainTextFormatter(32)
 	receiptPrinter := printer.NewReceiptPrinter(formatter, os.Stdout)
-	
-                // print
-               if err := receiptPrinter.Print(receipt); err != nil {
-                   panic(err)
-               }
 
+	if err := receiptPrinter.Print(receipt); err != nil {
+		panic(err)
+	}
 }
-
-
-
-

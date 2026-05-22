@@ -1,4 +1,3 @@
-// domain/receipt_test.go
 package domain
 
 import (
@@ -36,7 +35,7 @@ func TestPaymentStateCalculation(t *testing.T) {
 			r.TaxRate = decimal.Zero
 			r.Payment.Amount = decimal.RequireFromString(tt.paid)
 
-			if got := r.PaymentState(); got != tt.expected {
+			if got := r.AmountState(); got != tt.expected {
 				t.Errorf("got %s, want %s", got, tt.expected)
 			}
 		})

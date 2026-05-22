@@ -11,8 +11,6 @@ type Money struct {
 	Amount decimal.Decimal
 }
 
-
-
 // DisplayCurrency formats a decimal amount with a currency symbol.
 //
 // Precondition: amount is any valid decimal.Decimal (including zero).
@@ -23,11 +21,8 @@ type Money struct {
 // If currency is "", "Ksh" is used as the default.
 
 func DisplayCurrency(amount decimal.Decimal, currency string) string {
-    if currency == "" {
-        currency = "Ksh"   // default for your market
-    }
-    return fmt.Sprintf("%s%s", currency, amount.StringFixed(2))
+	if currency == "" {
+		currency = "Ksh" // default for your market
+	}
+	return fmt.Sprintf("%s%s", currency, amount.StringFixed(2))
 }
-
-
-
