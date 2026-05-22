@@ -125,6 +125,13 @@
     {{end}}
     <p>{{.Footer.CreatedAt}}</p>
   </div>
+  
+    {{if .QRCode}}
+    <div style="text-align:center; margin-top:15px;">
+        <img src="{{.QRCode}}" width="150" alt="QR verification">
+        <br><small>Scan to verify</small>
+    </div>
+    {{end}}
 
   <button class="print-btn" onclick="window.print()">🖨 Print to Paper</button>
   <a href="/" class="back-link">← New Receipt</a>

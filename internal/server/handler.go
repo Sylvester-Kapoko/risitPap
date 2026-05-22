@@ -5,30 +5,43 @@ import (
 	"encoding/hex"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-  "log"
+
 	"github.com/Sylvester-Kapoko/risitPap/domain"
 	"github.com/Sylvester-Kapoko/risitPap/internal/store"
 	"github.com/Sylvester-Kapoko/risitPap/printer"
 	"github.com/shopspring/decimal"
 )
 
-// eatLocation is East Africa Time (UTC+3).
 var eatLocation = time.FixedZone("EAT", 3*60*60)
 
-// nowInEAT returns the current time in EAT.
 func nowInEAT() time.Time {
-	return time.Now().In(eatLocation)
+	return time.Now().UTC().In(eatLocation)
+}
+
+// getUsername safely reads the username from the signed session cookie.
+// It returns an empty string if no valid session is present.
+func getUsername(r *http.Request) string {
+	cookie, err := r.Cookie("mk_session")
+	if err != nil {
+		return ""
+	}
+	parts := strings.Split(cookie.Value, "|")
+	if len(parts) < 3 {
+		return ""
+	}
+	return parts[0]
 }
 
 func HandleIndex(formatter *printer.HtmlFormatter, st store.ReceiptStore) http.HandlerFunc {
 	tmpl := template.Must(template.New("index").Parse(indexHTML))
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !st.ValidLicense() && st.TrialDaysLeft() <= 0 {
-		      _, _ =	w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trial Expired</title>
+			_, _ = w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trial Expired</title>
             <style>body{font-family:system-ui,sans-serif;max-width:500px;margin:auto;padding:20px;text-align:center;}
             a{color:#007bff;}</style></head><body>
             <h1>⏰ Trial Expired</h1>
@@ -61,7 +74,21 @@ func HandlePrint(formatter printer.ReceiptFormatter, st store.ReceiptStore) http
 
 		receipt := parseForm(r)
 		receipt.TransactionID = generateTransactionID()
-		receipt.CreatedAt = resolveReceiptDate(r.FormValue("receiptDate"))
+
+		// --- Date handling (custom or auto) ---
+		receiptDateStr := strings.TrimSpace(r.FormValue("receiptDate"))
+		if receiptDateStr != "" {
+			parsed, err := time.ParseInLocation("2006-01-02", receiptDateStr, eatLocation)
+			if err != nil {
+				receipt.CreatedAt = nowInEAT()
+			} else {
+				now := nowInEAT()
+				receipt.CreatedAt = time.Date(parsed.Year(), parsed.Month(), parsed.Day(),
+					now.Hour(), now.Minute(), now.Second(), 0, eatLocation)
+			}
+		} else {
+			receipt.CreatedAt = nowInEAT()
+		}
 
 		if cfg, err := st.LoadConfig(); err == nil && cfg != nil {
 			receipt.StorePhone = cfg.StorePhone
@@ -76,9 +103,17 @@ func HandlePrint(formatter printer.ReceiptFormatter, st store.ReceiptStore) http
 			receipt.Currency = "Ksh"
 		}
 
+		// -------- eTIMS digital signature --------
+		receipt.Sign(signatureSecret)
+
 		if err := st.Save(receipt); err != nil {
 			http.Error(w, "Failed to save receipt", http.StatusInternalServerError)
 			return
+		}
+
+		// -------- Audit log (print) --------
+		if user := getUsername(r); user != "" {
+			_ = st.LogAction(user, "print", receipt.TransactionID)
 		}
 
 		formatted, err := formatter.Format(receipt)
@@ -88,27 +123,8 @@ func HandlePrint(formatter printer.ReceiptFormatter, st store.ReceiptStore) http
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_,_ = w.Write([]byte(formatted))
+		_, _ = w.Write([]byte(formatted))
 	}
-}
-
-// resolveReceiptDate parses a YYYY-MM-DD date string into EAT time,
-// preserving the current EAT clock time. Falls back to now if blank or invalid.
-func resolveReceiptDate(dateStr string) time.Time {
-	dateStr = strings.TrimSpace(dateStr)
-	if dateStr == "" {
-		return nowInEAT()
-	}
-	parsed, err := time.ParseInLocation("2006-01-02", dateStr, eatLocation)
-	if err != nil {
-		return nowInEAT()
-	}
-	now := nowInEAT()
-	return time.Date(
-		parsed.Year(), parsed.Month(), parsed.Day(),
-		now.Hour(), now.Minute(), now.Second(), now.Nanosecond(),
-		eatLocation,
-	)
 }
 
 func HandleRegisterForm(st store.ReceiptStore) http.HandlerFunc {
@@ -125,8 +141,8 @@ func HandleRegisterForm(st store.ReceiptStore) http.HandlerFunc {
 func HandleRegisterSave(st store.ReceiptStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
-       log.Printf("ParseForm error: %v", err)
-    }
+			log.Printf("parseform: %v", err)
+		}
 		vatRegistered := r.FormValue("vatRegistered") == "true"
 		cfg := &domain.StoreConfig{
 			StoreName:     r.FormValue("storeName"),
@@ -142,27 +158,34 @@ func HandleRegisterSave(st store.ReceiptStore) http.HandlerFunc {
 			http.Error(w, "Failed to save settings", http.StatusInternalServerError)
 			return
 		}
+
+		// -------- Audit log (config change) --------
+		if user := getUsername(r); user != "" {
+			_ = st.LogAction(user, "config_change", "")
+		}
+
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 
 func generateTransactionID() string {
+	now := nowInEAT()
 	b := make([]byte, 3)
 	if _, err := rand.Read(b); err != nil {
-    log.Printf("rand.Read failed: %v", err)
-  }
-	return fmt.Sprintf("INV-%s-%s", nowInEAT().Format("20060102"), hex.EncodeToString(b))
+		log.Printf("rand.Read: %v", err)
+	}
+	return fmt.Sprintf("INV-%s-%s", now.Format("20060102"), hex.EncodeToString(b))
 }
 
 func parseForm(r *http.Request) *domain.Receipt {
 	if err := r.ParseForm(); err != nil {
-    // log or ignore
-    log.Printf("parseform error: %v", err)
-  }
+		log.Printf("parseform: %v", err)
+	}
 	taxRate, _ := decimal.NewFromString(r.FormValue("taxRate"))
 	payAmt, _ := decimal.NewFromString(r.FormValue("paymentAmount"))
+	itemsStr := r.FormValue("items")
 	var items []domain.ReceiptItem
-	for _, part := range strings.Split(r.FormValue("items"), ";") {
+	for _, part := range strings.Split(itemsStr, ";") {
 		if part == "" {
 			continue
 		}
@@ -179,13 +202,15 @@ func parseForm(r *http.Request) *domain.Receipt {
 		})
 	}
 	return &domain.Receipt{
-		StoreName: r.FormValue("storeName"),
-		StoreAddr: r.FormValue("storeAddr"),
-		TaxRate:   taxRate,
-		Items:     items,
+		TransactionID: r.FormValue("transactionID"),
+		StoreName:     r.FormValue("storeName"),
+		StoreAddr:     r.FormValue("storeAddr"),
+		TaxRate:       taxRate,
+		Items:         items,
 		Payment: domain.Payment{
 			Method: r.FormValue("paymentMethod"),
 			Amount: payAmt,
 		},
+		CreatedAt: nowInEAT(),
 	}
 }

@@ -87,6 +87,9 @@ func (m *mockStore) SuggestItems(prefix string) ([]map[string]string, error) {
 	return nil, nil
 }
 
+func (m *mockStore) LogAction(username, action, detail string) error {
+    return nil
+}
 // --------------------------------------------------------------------
 //  Date handling tests
 // --------------------------------------------------------------------

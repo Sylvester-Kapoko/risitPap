@@ -48,6 +48,16 @@ func Open(path string) (*Store, error) {
         return nil, fmt.Errorf("create users table: %w", err)
     }
 
+    if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        detail TEXT DEFAULT '',
+        timestamp TEXT NOT NULL
+    )`); err != nil {
+        return nil, fmt.Errorf("create audit_log table: %w", err)
+    }
+
     return &Store{db: db}, nil
 }
 

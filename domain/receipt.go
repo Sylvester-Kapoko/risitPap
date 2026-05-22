@@ -2,7 +2,11 @@
 package domain
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -15,20 +19,21 @@ type ReceiptItem struct {
 }
 
 type Receipt struct {
-	ID            string `json:"id"`
-	TransactionID string `json:"transaction_id"`
-	StoreName     string
-	StoreAddr     string
-	StorePhone    string
-	StoreTaxID    string
-	HasVAT        bool
-	Currency      string
-	Items         []ReceiptItem
-	TaxRate       decimal.Decimal
-	Payment       Payment
-	Status        PaymentStatus `json:"status"`
-	CreatedAt     time.Time     `json:"created_at"`
-	UpdatedAt     time.Time     `json:"updated_at"`
+	ID               string        `json:"id"`
+	TransactionID    string        `json:"transaction_id"`
+	StoreName        string
+	StoreAddr        string
+	StorePhone       string
+	StoreTaxID       string
+	HasVAT           bool
+	Currency         string
+	Items            []ReceiptItem
+	TaxRate          decimal.Decimal
+	Payment          Payment
+	Status           PaymentStatus `json:"status"`
+	CreatedAt        time.Time     `json:"created_at"`
+	UpdatedAt        time.Time     `json:"updated_at"`
+	DigitalSignature string        `json:"digital_signature,omitempty"`
 }
 
 func NewReceipt() *Receipt {
@@ -170,4 +175,30 @@ type Payment struct {
 	Method string
 	Amount decimal.Decimal
 	Status PaymentStatus
+}
+
+// ==================== DIGITAL SIGNATURE (eTIMS Phase 1) ====================
+
+// Sign computes an HMAC‑SHA256 signature over the receipt’s critical identity fields.
+func (r *Receipt) Sign(secret []byte) {
+	payload := fmt.Sprintf("%s|%s|%s|%s",
+		r.TransactionID,
+		r.Total().String(),
+		r.StoreTaxID,
+		r.CreatedAt.Format(time.RFC3339),
+	)
+	mac := hmac.New(sha256.New, secret)
+	mac.Write([]byte(payload))
+	r.DigitalSignature = hex.EncodeToString(mac.Sum(nil))
+}
+
+// Verify checks the digital signature.
+func (r *Receipt) Verify(secret []byte) bool {
+	if r.DigitalSignature == "" {
+		return false
+	}
+	clone := *r
+	clone.DigitalSignature = ""
+	clone.Sign(secret)
+	return hmac.Equal([]byte(clone.DigitalSignature), []byte(r.DigitalSignature))
 }

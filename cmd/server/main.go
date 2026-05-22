@@ -52,7 +52,6 @@ func main() {
 	// --- Public routes (no authentication required) ---
 	http.HandleFunc("/login", server.HandleLogin(db))
 	http.HandleFunc("/logout", server.HandleLogout(db))
-	// registration is only allowed when no users exist (single-owner setup)
 	http.HandleFunc("/register", server.HandleRegisterForm(db))
 	http.HandleFunc("/register/save", server.HandleRegisterSave(db))
 
@@ -62,10 +61,10 @@ func main() {
 	http.HandleFunc("/history", server.RequireLogin(server.HandleHistory(formatter, db)))
 	http.HandleFunc("/view", server.RequireLogin(server.HandleView(formatter, db)))
 	http.HandleFunc("/suggest", server.RequireLogin(server.HandleSuggest(db)))
+	http.HandleFunc("/verify", server.RequireLogin(server.HandleVerify(db))) // NEW
 
 	fmt.Println("Receipt Printer running at:")
 	fmt.Println("  http://localhost:8080")
-	// Print local IP for phone access
 	addrs, _ := net.InterfaceAddrs()
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
