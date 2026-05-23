@@ -98,7 +98,9 @@
         <p><strong>Anti‑Fake Code:</strong> {{.AntiFakeCode}}</p>
     {{end}}
   </div>
-
+  {{if .CustomerName}}
+      <p><strong>To:</strong> {{.CustomerName}}{{if .CustomerPhone}} ({{.CustomerPhone}}){{end}}</p>
+  {{end}}
   <hr class="dotted-line">
 
   <table class="items">

@@ -29,14 +29,14 @@ func (m *mockFormatter) Format(r *domain.Receipt) (string, error) {
 // --------------------------------------------------------------------
 
 type mockStore struct {
-	receipts  map[string]*domain.Receipt
-	config    *domain.StoreConfig
-	license   bool
-	trialDays int
-	suggestFn func(prefix string) ([]map[string]string, error)
-	unsynced     []domain.Receipt
-  unsyncedErr  error
-  updateErr    error
+	receipts    map[string]*domain.Receipt
+	config      *domain.StoreConfig
+	license     bool
+	trialDays   int
+	suggestFn   func(prefix string) ([]map[string]string, error)
+	unsynced    []domain.Receipt
+	unsyncedErr error
+	updateErr   error
 }
 
 func (m *mockStore) Save(r *domain.Receipt) error {
@@ -92,17 +92,18 @@ func (m *mockStore) SuggestItems(prefix string) ([]map[string]string, error) {
 
 // unsynced is a slice of receipts that GetUnsyncedReceipts will return.
 func (m *mockStore) GetUnsyncedReceipts() ([]domain.Receipt, error) {
-    return m.unsynced, m.unsyncedErr
+	return m.unsynced, m.unsyncedErr
 }
 
 // UpdateReceiptSync is a no-op that records the call.
 func (m *mockStore) UpdateReceiptSync(r domain.Receipt) error {
-    return m.updateErr
+	return m.updateErr
 }
 
 func (m *mockStore) LogAction(username, action, detail string) error {
-    return nil
+	return nil
 }
+
 // --------------------------------------------------------------------
 //  Date handling tests
 // --------------------------------------------------------------------

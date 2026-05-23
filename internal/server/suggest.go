@@ -2,8 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
-  "log"
+
 	"github.com/Sylvester-Kapoko/risitPap/internal/store"
 )
 
@@ -11,7 +12,7 @@ func HandleSuggest(st *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		if len(q) < 2 {
-			_,_ = w.Write([]byte("[]"))
+			_, _ = w.Write([]byte("[]"))
 			return
 		}
 		rows, err := st.SuggestItems(q)
@@ -21,7 +22,7 @@ func HandleSuggest(st *store.Store) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(rows); err != nil {
-         log.Printf("suggest encode: %v", err)
-    }
-  }
+			log.Printf("suggest encode: %v", err)
+		}
+	}
 }

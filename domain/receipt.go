@@ -19,8 +19,8 @@ type ReceiptItem struct {
 }
 
 type Receipt struct {
-	ID               string        `json:"id"`
-	TransactionID    string        `json:"transaction_id"`
+	ID               string `json:"id"`
+	TransactionID    string `json:"transaction_id"`
 	StoreName        string
 	StoreAddr        string
 	StorePhone       string
@@ -34,9 +34,11 @@ type Receipt struct {
 	CreatedAt        time.Time     `json:"created_at"`
 	UpdatedAt        time.Time     `json:"updated_at"`
 	DigitalSignature string        `json:"digital_signature,omitempty"`
-	FDN          string `json:"fdn,omitempty"`          // Fiscal Document Number (KRA response)
-  AntiFakeCode string `json:"anti_fake_code,omitempty"` // Anti‑fake code (KRA response)
-  SyncStatus string `json:"sync_status,omitempty"` // "pending", "synced", "failed"
+	FDN              string        `json:"fdn,omitempty"`            // Fiscal Document Number (KRA response)
+	AntiFakeCode     string        `json:"anti_fake_code,omitempty"` // Anti‑fake code (KRA response)
+	SyncStatus       string        `json:"sync_status,omitempty"`    // "pending", "synced", "failed"
+	CustomerName     string        `json:"customer_name,omitempty"`
+	CustomerPhone    string        `json:"customer_phone,omitempty"`
 }
 
 func NewReceipt() *Receipt {

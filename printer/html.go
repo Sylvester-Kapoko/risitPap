@@ -60,6 +60,8 @@ type receiptView struct {
 	StoreName     string
 	StoreAddr     string
 	StorePhone    string
+	CustomerName  string // ← new
+	CustomerPhone string // ← new
 	StoreTaxID    string
 	TransactionID string
 	Currency      string
@@ -82,9 +84,9 @@ type receiptView struct {
 
 	Footer footerView
 
-	QRCode template.URL // FIXED: was string, html/template escapes data: URLs to #ZgotmplZ
+	QRCode       template.URL // FIXED: was string, html/template escapes data: URLs to #ZgotmplZ
 	FDN          string
-  AntiFakeCode string
+	AntiFakeCode string
 }
 
 type itemView struct {
@@ -131,6 +133,8 @@ func (f *HtmlFormatter) Format(r *domain.Receipt) (string, error) {
 		StoreAddr:     r.StoreAddr,
 		StorePhone:    r.StorePhone,
 		StoreTaxID:    r.StoreTaxID,
+		CustomerName:  r.CustomerName,  // ← new
+		CustomerPhone: r.CustomerPhone, // ← new
 		TransactionID: r.TransactionID,
 		Currency:      r.Currency,
 		Items:         items,
@@ -157,11 +161,10 @@ func (f *HtmlFormatter) Format(r *domain.Receipt) (string, error) {
 		},
 
 		QRCode: template.URL(qrImg), // FIXED: cast to template.URL to prevent escaping
-		
+
 		// eTIMS Phase 2 fields – displayed only when present
 		FDN:          r.FDN,
 		AntiFakeCode: r.AntiFakeCode,
-		
 	}
 
 	var buf bytes.Buffer

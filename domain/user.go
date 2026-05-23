@@ -2,7 +2,7 @@
 package domain
 
 type User struct {
-    Username     string
-    PasswordHash string
-    // BusinessName, Phone, etc. can be added later
+	Username     string
+	PasswordHash string
+	// BusinessName, Phone, etc. can be added later
 }

@@ -9,5 +9,5 @@ type StoreConfig struct {
 	Currency      string
 	TemplateId    string
 	LogoPath      string
-	RegisterID    string   // ← NEW: eTIMS register identifier
+	RegisterID    string // ← NEW: eTIMS register identifier
 }
