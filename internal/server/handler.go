@@ -201,6 +201,7 @@ func parseForm(r *http.Request) *domain.Receipt {
 			UnitPrice: price,
 		})
 	}
+
 	return &domain.Receipt{
 		TransactionID: r.FormValue("transactionID"),
 		StoreName:     r.FormValue("storeName"),
@@ -211,6 +212,7 @@ func parseForm(r *http.Request) *domain.Receipt {
 			Method: r.FormValue("paymentMethod"),
 			Amount: payAmt,
 		},
-		CreatedAt: nowInEAT(),
+		CreatedAt:  nowInEAT(),
+		SyncStatus: "pending", // ← new line, correctly inside the struct
 	}
 }

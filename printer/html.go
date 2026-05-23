@@ -83,6 +83,8 @@ type receiptView struct {
 	Footer footerView
 
 	QRCode template.URL // FIXED: was string, html/template escapes data: URLs to #ZgotmplZ
+	FDN          string
+  AntiFakeCode string
 }
 
 type itemView struct {
@@ -155,6 +157,11 @@ func (f *HtmlFormatter) Format(r *domain.Receipt) (string, error) {
 		},
 
 		QRCode: template.URL(qrImg), // FIXED: cast to template.URL to prevent escaping
+		
+		// eTIMS Phase 2 fields – displayed only when present
+		FDN:          r.FDN,
+		AntiFakeCode: r.AntiFakeCode,
+		
 	}
 
 	var buf bytes.Buffer

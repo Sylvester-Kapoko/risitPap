@@ -184,3 +184,35 @@ func (s *Store) ValidateUser(username, password string) (*domain.User, error) {
 	u.PasswordHash = ""
 	return &u, nil
 }
+
+// --- eTIMS sync methods ---
+
+func (s *Store) GetUnsyncedReceipts() ([]domain.Receipt, error) {
+    rows, err := s.db.Query("SELECT data FROM receipts WHERE json_extract(data, '$.sync_status') = 'pending'")
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    var receipts []domain.Receipt
+    for rows.Next() {
+        var data string
+        if err := rows.Scan(&data); err != nil {
+            continue
+        }
+        var r domain.Receipt
+        if err := json.Unmarshal([]byte(data), &r); err != nil {
+            continue
+        }
+        receipts = append(receipts, r)
+    }
+    return receipts, rows.Err()
+}
+
+func (s *Store) UpdateReceiptSync(r domain.Receipt) error {
+    data, err := json.Marshal(r)
+    if err != nil {
+        return err
+    }
+    _, err = s.db.Exec("UPDATE receipts SET data = ? WHERE id = ?", string(data), r.TransactionID)
+    return err
+}

@@ -34,6 +34,9 @@ type Receipt struct {
 	CreatedAt        time.Time     `json:"created_at"`
 	UpdatedAt        time.Time     `json:"updated_at"`
 	DigitalSignature string        `json:"digital_signature,omitempty"`
+	FDN          string `json:"fdn,omitempty"`          // Fiscal Document Number (KRA response)
+  AntiFakeCode string `json:"anti_fake_code,omitempty"` // Anti‑fake code (KRA response)
+  SyncStatus string `json:"sync_status,omitempty"` // "pending", "synced", "failed"
 }
 
 func NewReceipt() *Receipt {

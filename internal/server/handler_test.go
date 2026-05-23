@@ -34,6 +34,9 @@ type mockStore struct {
 	license   bool
 	trialDays int
 	suggestFn func(prefix string) ([]map[string]string, error)
+	unsynced     []domain.Receipt
+  unsyncedErr  error
+  updateErr    error
 }
 
 func (m *mockStore) Save(r *domain.Receipt) error {
@@ -85,6 +88,16 @@ func (m *mockStore) SuggestItems(prefix string) ([]map[string]string, error) {
 		return m.suggestFn(prefix)
 	}
 	return nil, nil
+}
+
+// unsynced is a slice of receipts that GetUnsyncedReceipts will return.
+func (m *mockStore) GetUnsyncedReceipts() ([]domain.Receipt, error) {
+    return m.unsynced, m.unsyncedErr
+}
+
+// UpdateReceiptSync is a no-op that records the call.
+func (m *mockStore) UpdateReceiptSync(r domain.Receipt) error {
+    return m.updateErr
 }
 
 func (m *mockStore) LogAction(username, action, detail string) error {

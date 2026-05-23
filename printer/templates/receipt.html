@@ -93,6 +93,10 @@
     {{if .ShowPhone}}<p>Tel: {{.StorePhone}}</p>{{end}}
     {{if .ShowTaxID}}<p>KRA: {{.StoreTaxID}}</p>{{end}}
     <p>Transaction: {{.TransactionID}}</p>
+    {{if .FDN}}
+        <p><strong>FDN:</strong> {{.FDN}}</p>
+        <p><strong>Anti‑Fake Code:</strong> {{.AntiFakeCode}}</p>
+    {{end}}
   </div>
 
   <hr class="dotted-line">

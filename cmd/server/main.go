@@ -61,7 +61,9 @@ func main() {
 	http.HandleFunc("/history", server.RequireLogin(server.HandleHistory(formatter, db)))
 	http.HandleFunc("/view", server.RequireLogin(server.HandleView(formatter, db)))
 	http.HandleFunc("/suggest", server.RequireLogin(server.HandleSuggest(db)))
-	http.HandleFunc("/verify", server.RequireLogin(server.HandleVerify(db))) // NEW
+	http.HandleFunc("/verify", server.RequireLogin(server.HandleVerify(db)))
+	http.HandleFunc("/sync-kra", server.RequireLogin(server.HandleSyncKRA(db)))
+	// NEW
 
 	fmt.Println("Receipt Printer running at:")
 	fmt.Println("  http://localhost:8080")

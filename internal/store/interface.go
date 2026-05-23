@@ -19,4 +19,7 @@ type ReceiptStore interface {
 
     // --- eTIMS audit log ---
     LogAction(username, action, detail string) error
+     GetUnsyncedReceipts() ([]domain.Receipt, error)
+    UpdateReceiptSync(r domain.Receipt) error
+
 }
