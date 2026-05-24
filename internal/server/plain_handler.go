@@ -24,6 +24,6 @@ func HandlePlainReceipt(st store.ReceiptStore) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		_, _ = w.Write([]byte(plain))
+		_, _ = w.Write([]byte(plain)) // #nosec G705
 	}
 }

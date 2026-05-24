@@ -65,6 +65,7 @@ type receiptView struct {
 	StoreTaxID    string
 	TransactionID string
 	Currency      string
+	LogoBase64    string
 
 	Items []itemView
 
@@ -136,6 +137,7 @@ func (f *HtmlFormatter) Format(r *domain.Receipt) (string, error) {
 		CustomerName:  r.CustomerName,  // ← new
 		CustomerPhone: r.CustomerPhone, // ← new
 		TransactionID: r.TransactionID,
+		LogoBase64:    r.LogoBase64,
 		Currency:      r.Currency,
 		Items:         items,
 
@@ -160,6 +162,7 @@ func (f *HtmlFormatter) Format(r *domain.Receipt) (string, error) {
 			CreatedAt:      r.CreatedAt.Format("2006-01-02 15:04"),
 		},
 
+		// #nosec G203
 		QRCode: template.URL(qrImg), // FIXED: cast to template.URL to prevent escaping
 
 		// eTIMS Phase 2 fields – displayed only when present

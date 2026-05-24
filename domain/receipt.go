@@ -39,6 +39,7 @@ type Receipt struct {
 	SyncStatus       string        `json:"sync_status,omitempty"`    // "pending", "synced", "failed"
 	CustomerName     string        `json:"customer_name,omitempty"`
 	CustomerPhone    string        `json:"customer_phone,omitempty"`
+	LogoBase64       string        `json:"logo_base64,omitempty"`
 }
 
 func NewReceipt() *Receipt {

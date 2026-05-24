@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/base64"
 	"html/template"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Sylvester-Kapoko/risitPap/domain"
@@ -43,7 +45,13 @@ func HandleHistory(formatter *printer.HtmlFormatter, st *store.Store) http.Handl
 	}
 }
 
-func HandleView(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerFunc {
+// receiptWrapper is used to pass already-safe HTML to the template.
+type receiptWrapper struct {
+	HTML template.HTML
+}
+
+func HandleView(formatter *printer.HtmlFormatter, st store.ReceiptStore) http.HandlerFunc {
+	tmpl := template.Must(template.New("receiptview").Parse(`<html><body>{{.HTML}}</body></html>`))
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 		receipt, err := st.Get(id)
@@ -51,12 +59,20 @@ func HandleView(formatter *printer.HtmlFormatter, st *store.Store) http.HandlerF
 			http.NotFound(w, r)
 			return
 		}
+
+		// Load the logo if a path is configured
+		if cfg, err := st.LoadConfig(); err == nil && cfg != nil && cfg.LogoPath != "" {
+			if imgData, err := os.ReadFile(cfg.LogoPath); err == nil {
+				receipt.LogoBase64 = base64.StdEncoding.EncodeToString(imgData)
+			}
+		}
+
 		formatted, err := formatter.Format(receipt)
 		if err != nil {
 			http.Error(w, "Failed to format receipt", http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write([]byte(formatted))
+		_ = tmpl.Execute(w, receiptWrapper{HTML: template.HTML(formatted)}) // #nosec G203
 	}
 }

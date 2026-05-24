@@ -29,14 +29,20 @@ func (m *mockFormatter) Format(r *domain.Receipt) (string, error) {
 // --------------------------------------------------------------------
 
 type mockStore struct {
-	receipts    map[string]*domain.Receipt
-	config      *domain.StoreConfig
-	license     bool
-	trialDays   int
-	suggestFn   func(prefix string) ([]map[string]string, error)
-	unsynced    []domain.Receipt
-	unsyncedErr error
-	updateErr   error
+	receipts      map[string]*domain.Receipt
+	config        *domain.StoreConfig
+	license       bool
+	trialDays     int
+	suggestFn     func(prefix string) ([]map[string]string, error)
+	unsynced      []domain.Receipt
+	unsyncedErr   error
+	updateErr     error
+	users         map[string]string // username → password (plain for testing)
+	usersList     []domain.User
+	usersErr      error
+	deleteUserErr error
+	changePwdErr  error
+	createUserFn  func(username, password string) error
 }
 
 func (m *mockStore) Save(r *domain.Receipt) error {
@@ -102,6 +108,38 @@ func (m *mockStore) UpdateReceiptSync(r domain.Receipt) error {
 
 func (m *mockStore) LogAction(username, action, detail string) error {
 	return nil
+}
+
+// CreateUser (for user management tests)
+func (m *mockStore) CreateUser(username, password string) error {
+	if m.createUserFn != nil {
+		return m.createUserFn(username, password)
+	}
+	if m.users == nil {
+		m.users = make(map[string]string)
+	}
+	m.users[username] = password
+	return nil
+}
+
+func (m *mockStore) ListUsers() ([]domain.User, error) {
+	return m.usersList, m.usersErr
+}
+
+func (m *mockStore) DeleteUser(username string) error {
+	return m.deleteUserErr
+}
+
+func (m *mockStore) ChangePassword(username, oldPassword, newPassword string) error {
+	return m.changePwdErr
+}
+
+func (m *mockStore) ValidateUser(username, password string) (*domain.User, error) {
+	stored, ok := m.users[username]
+	if !ok || stored != password {
+		return nil, errors.New("invalid credentials")
+	}
+	return &domain.User{Username: username}, nil
 }
 
 // --------------------------------------------------------------------

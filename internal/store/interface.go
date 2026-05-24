@@ -21,4 +21,8 @@ type ReceiptStore interface {
 	LogAction(username, action, detail string) error
 	GetUnsyncedReceipts() ([]domain.Receipt, error)
 	UpdateReceiptSync(r domain.Receipt) error
+	CreateUser(username, password string) error
+	ListUsers() ([]domain.User, error)
+	DeleteUser(username string) error
+	ChangePassword(username, oldPassword, newPassword string) error
 }

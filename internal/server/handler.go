@@ -2,11 +2,13 @@ package server
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -98,6 +100,12 @@ func HandlePrint(formatter printer.ReceiptFormatter, st store.ReceiptStore) http
 			if !cfg.VATRegistered {
 				receipt.TaxRate = decimal.Zero
 			}
+			if cfg.LogoPath != "" {
+				if imgData, err := os.ReadFile(cfg.LogoPath); err == nil {
+					receipt.LogoBase64 = base64.StdEncoding.EncodeToString(imgData)
+				}
+			}
+
 		}
 		if receipt.Currency == "" {
 			receipt.Currency = "Ksh"

@@ -1,7 +1,9 @@
 package server
 
 const indexHTML = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Receipt Printer</title>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt Printer</title>
 <style>
   body { font-family: system-ui, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
   label { display: block; margin: 8px 0 2px; font-weight: bold; }
@@ -15,9 +17,37 @@ const indexHTML = `<!DOCTYPE html>
   .totals { font-size: 1.2em; margin: 15px 0; padding: 10px; background: #f9f9f9; }
   .totals div { margin: 3px 0; }
   .totals .grand { font-weight: bold; font-size: 1.3em; }
-  .item-form { display: flex; gap: 10px; align-items: end; }
-  .item-form input { width: auto; flex: 1; }
-  .item-form button { height: 36px; }
+  .item-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+  }
+  .item-form input {
+    flex: 1 1 80px;
+    min-width: 60px;
+    margin-bottom: 0;
+  }
+  .add-btn {
+    flex: 0 0 auto;
+    height: 42px;
+    white-space: nowrap;
+    background: #f5a623;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  @media (max-width: 600px) {
+    body { padding: 10px; }
+    .radio-group { flex-direction: column; align-items: flex-start; }
+    .item-form { flex-direction: column; }
+    .item-form input { width: 100%; }
+    table { font-size: 14px; }
+  }
 </style></head>
 <body>
   <nav class="no-print">
@@ -30,15 +60,22 @@ const indexHTML = `<!DOCTYPE html>
   <form id="receiptForm" method="POST" action="/print" target="_blank">
     <label>Store name</label>
     <input name="storeName" value="{{.StoreName}}" placeholder="Your Business Name" required>
-   
+
     <label>Store address</label>
     <input name="storeAddr" value="{{.StoreAddr}}" placeholder="30500 Cathedral Street, Lodwar, Township" required>
-     
+
     <label>Store Phone</label>
     <input name="storePhone" value="{{.StorePhone}}" placeholder="25476859....">
 
     <label>Receipt Date (leave empty for today)</label>
     <input name="receiptDate" type="date">
+
+    <!-- Customer fields -->
+    <label>Customer Name (optional)</label>
+    <input name="customerName" placeholder="Customer name">
+
+    <label>Customer Phone (optional)</label>
+    <input name="customerPhone" placeholder="07XXXXXXXX">
 
     <label>Tax PIN /  VAT</label>
     <input name="storeTaxID" value="{{.StoreTaxID}}" placeholder="Tax Pin / VAT (optional)" required>
@@ -48,13 +85,16 @@ const indexHTML = `<!DOCTYPE html>
       <input id="itemName" placeholder="e.g. Labour" style="flex:2">
       <input id="itemQty" type="number" placeholder="Qty" value="1" min="1" style="flex:1">
       <input id="itemPrice" type="number" step="0.01" placeholder="Price" style="flex:1">
-      <button type="button" onclick="addItem()">+ Add</button>
+      <button type="button" onclick="addItem()" class="add-btn">+ Add</button>
     </div>
 
     <table id="itemsTable">
       <tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr>
     </table>
     <input type="hidden" name="items" id="itemsInput">
+
+    <!-- Hidden currency for JavaScript formatting -->
+    <span id="displayCurrency" style="display:none;">{{.Currency}}</span>
 
     <h3>Payment Method</h3>
     <div class="radio-group">
@@ -78,10 +118,10 @@ const indexHTML = `<!DOCTYPE html>
     <input name="taxRate" value="0.16" required>
 
     <div class="totals" id="totals">
-      <div>Subtotal: Ksh<span id="subtotal">0.00</span></div>
-      <div>Tax: Ksh<span id="tax">0.00</span></div>
-      <div class="grand">TOTAL: Ksh<span id="grandTotal">0.00</span></div>
-      <div>Change: Ksh<span id="change">0.00</span></div>
+      <div>Subtotal: <span id="subtotal">0.00</span></div>
+      <div>Tax: <span id="tax">0.00</span></div>
+      <div class="grand">TOTAL: <span id="grandTotal">0.00</span></div>
+      <div>Change: <span id="change">0.00</span></div>
     </div>
 
     <button type="submit">🖨 Print Receipt</button>
@@ -162,10 +202,20 @@ const indexHTML = `<!DOCTYPE html>
 </body></html>`
 
 const registerHTML = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Store Settings</title>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store Settings</title>
 <style>body{font-family:sans-serif;max-width:500px;margin:auto;padding:20px;}
 label{display:block;margin-top:10px;} input,select{width:100%;padding:8px;margin:5px 0;}
-button{margin-top:15px;padding:10px 20px;}</style></head><body>
+button{margin-top:15px;padding:10px 20px;}
+@media (max-width: 600px) {
+  body { padding: 10px; }
+  .radio-group { flex-direction: column; align-items: flex-start; }
+  .item-form { flex-direction: column; }
+  .item-form input { width: 100%; }
+  table { font-size: 14px; }
+}
+</style></head><body>
 <h1>Store Settings</h1>
 <form method="POST" action="/register/save">
     <label>Business Name</label>

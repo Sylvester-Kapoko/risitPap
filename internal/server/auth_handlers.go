@@ -28,14 +28,9 @@ func HandleLogin(auth store.AuthStore) http.HandlerFunc {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
-
 func HandleLogout(auth store.AuthStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		http.SetCookie(w, &http.Cookie{
-			Name:   "mk_session",
-			MaxAge: -1,
-			Path:   "/",
-		})
+		clearSessionCookie(w)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }

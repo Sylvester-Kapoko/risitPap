@@ -216,3 +216,47 @@ func (s *Store) UpdateReceiptSync(r domain.Receipt) error {
 	_, err = s.db.Exec("UPDATE receipts SET data = ? WHERE id = ?", string(data), r.TransactionID)
 	return err
 }
+
+// ListUsers returns all users (username only, no password hash).
+func (s *Store) ListUsers() ([]domain.User, error) {
+	rows, err := s.db.Query("SELECT username FROM users ORDER BY username")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var users []domain.User
+	for rows.Next() {
+		var u domain.User
+		if err := rows.Scan(&u.Username); err != nil {
+			continue
+		}
+		users = append(users, u)
+	}
+	return users, rows.Err()
+}
+
+// DeleteUser removes a user. Returns an error if it would leave zero users.
+func (s *Store) DeleteUser(username string) error {
+	var count int
+	if err := s.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count); err != nil {
+		return err
+	}
+	if count <= 1 {
+		return fmt.Errorf("cannot delete the last user")
+	}
+	_, err := s.db.Exec("DELETE FROM users WHERE username = ?", username)
+	return err
+}
+
+// ChangePassword validates the old password and updates to the new one.
+func (s *Store) ChangePassword(username, oldPassword, newPassword string) error {
+	if _, err := s.ValidateUser(username, oldPassword); err != nil {
+		return err
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec("UPDATE users SET password_hash = ? WHERE username = ?", string(hash), username)
+	return err
+}

@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Sylvester-Kapoko/risitPap/internal/server"
 	"github.com/Sylvester-Kapoko/risitPap/internal/store"
@@ -49,13 +50,13 @@ func main() {
 		ShowFooter:     true,
 	})
 
-	// --- Public routes (no authentication required) ---
+	// --- Public routes ---
 	http.HandleFunc("/login", server.HandleLogin(db))
 	http.HandleFunc("/logout", server.HandleLogout(db))
 	http.HandleFunc("/register", server.HandleRegisterForm(db))
 	http.HandleFunc("/register/save", server.HandleRegisterSave(db))
 
-	// --- Protected routes (require login) ---
+	// --- Protected routes ---
 	http.HandleFunc("/", server.RequireLogin(server.HandleIndex(formatter, db)))
 	http.HandleFunc("/print", server.RequireLogin(server.HandlePrint(formatter, db)))
 	http.HandleFunc("/history", server.RequireLogin(server.HandleHistory(formatter, db)))
@@ -63,8 +64,11 @@ func main() {
 	http.HandleFunc("/suggest", server.RequireLogin(server.HandleSuggest(db)))
 	http.HandleFunc("/verify", server.RequireLogin(server.HandleVerify(db)))
 	http.HandleFunc("/sync-kra", server.RequireLogin(server.HandleSyncKRA(db)))
-	// NEW
 	http.HandleFunc("/plain", server.RequireLogin(server.HandlePlainReceipt(db)))
+	http.HandleFunc("/changepassword", server.RequireLogin(server.HandleChangePassword(db)))
+	http.HandleFunc("/admin/users", server.RequireLogin(server.HandleListUsers(db)))
+	http.HandleFunc("/admin/users/add", server.RequireLogin(server.HandleAddUser(db)))
+	http.HandleFunc("/admin/users/delete", server.RequireLogin(server.HandleDeleteUser(db)))
 
 	fmt.Println("Receipt Printer running at:")
 	fmt.Println("  http://localhost:8080")
@@ -78,7 +82,14 @@ func main() {
 	if err := browser.OpenURL("http://localhost:8080"); err != nil {
 		fmt.Println("could not open browser:", err)
 	}
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+
+	srv := &http.Server{
+		Addr:         ":8080",
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

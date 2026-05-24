@@ -2,11 +2,13 @@
 package server
 
 import (
-	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/Sylvester-Kapoko/risitPap/internal/store"
 )
+
+var verifyTmpl = template.Must(template.New("verify").Parse(`<html><body><h1>Verification: {{.}}</h1></body></html>`))
 
 func HandleVerify(st store.ReceiptStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -17,6 +19,6 @@ func HandleVerify(st store.ReceiptStore) http.HandlerFunc {
 			return
 		}
 		valid := receipt.Verify(signatureSecret)
-		fmt.Fprintf(w, `<html><body><h1>Verification: %v</h1></body></html>`, valid)
+		_ = verifyTmpl.Execute(w, valid)
 	}
 }

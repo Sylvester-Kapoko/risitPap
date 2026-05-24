@@ -2,9 +2,6 @@
 package server
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -40,13 +37,11 @@ func (m *mockAuthStore) ValidateUser(username, password string) (*domain.User, e
 // ---------- helper: create a valid signed cookie (uses production sessionSecret) ----------
 func signTestCookie(username string) *http.Cookie {
 	expiry := time.Now().Add(time.Hour).Format(time.RFC3339)
-	value := username + "|" + expiry
-	mac := hmac.New(sha256.New, sessionSecret)
-	mac.Write([]byte(value))
-	sig := hex.EncodeToString(mac.Sum(nil))[:16]
+	sig := signPayload(username, expiry)
+	value := username + "|" + expiry + "|" + sig
 	return &http.Cookie{
 		Name:  "mk_session",
-		Value: value + "|" + sig,
+		Value: value,
 	}
 }
 
