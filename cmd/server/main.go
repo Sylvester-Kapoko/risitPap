@@ -38,6 +38,12 @@ func main() {
          DeveloperPhone: "0768592677",
          ShowFooter: true,
     })
+
+    port := os.Getenv("PORT")
+        if port == "" {
+        port = "8080"
+    }
+
     http.HandleFunc("/", server.HandleIndex(formatter, db))
     http.HandleFunc("/print", server.HandlePrint(formatter, db))
     http.HandleFunc("/history", server.HandleHistory(formatter, db))
@@ -47,15 +53,19 @@ func main() {
     http.HandleFunc("/suggest", server.HandleSuggest(db))
 
     fmt.Println("Receipt Printer running at:")
-    fmt.Println("  http://localhost:8080")
+    fmt.Println("  http://localhost:" + port)
     // Print local IP for phone access
     addrs, _ := net.InterfaceAddrs()
     for _, a := range addrs {
         if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-            fmt.Printf("  http://%s:8080\n", ipnet.IP)
+            fmt.Printf("  http://%s:%s\n", ipnet.IP, port)
         }
     }
 
-    browser.OpenURL("http://localhost:8080")
-    http.ListenAndServe(":8080", nil)
+    // Only open a browser in local development, not on Render
+    
+    if os.Getenv("RENDER") == "" {
+        browser.OpenURL("http://localhost:" + port)
+    }
+    http.ListenAndServe(":"+port, nil)
 }
