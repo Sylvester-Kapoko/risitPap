@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
-                "github.com/Sylvester-Kapoko/Receipts/service"
+        "github.com/Sylvester-Kapoko/risitPap/service"
 )
 
 type Handler struct {

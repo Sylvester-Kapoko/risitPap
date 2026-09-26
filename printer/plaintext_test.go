@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sylvester-Kapoko/Receipts/domain"
+	"github.com/Sylvester-Kapoko/risitPap/domain"
 	"github.com/shopspring/decimal"
 )
 
